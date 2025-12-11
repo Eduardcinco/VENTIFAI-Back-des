@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "apis1": {
+      "restored": true,
+      "restoreTime": "2025-12-09T22:18:11.5536794Z"
+    },
+    "mssql1": {
+      "restored": true,
+      "restoreTime": "2025-12-09T22:25:57.5958773Z"
+    }
+  },
+  "parameters": {
+    "apis1.resourceGroupName": {
+      "Name": "apis1.resourceGroupName",
+      "Type": "resourceGroup",
+      "Value": "Api-Ventify"
+    },
+    "apis1.subscriptionId": {
+      "Name": "apis1.subscriptionId",
+      "Type": "subscription",
+      "Value": "fc6ad370-d7f2-4159-af27-a3a91589a2b5"
+    }
+  }
+}
