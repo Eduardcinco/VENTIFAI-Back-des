@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EPPlus" Version="8.3.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.0" />
+    <PackageReference Include="QuestPDF" Version="2024.10.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <!-- Exclude ventify-local BACKEND duplicate sources -->
+    <Compile Remove="ventify-local\\BACKEND\\VentifyAPI\\**\\*.cs" />
+    <Content Remove="ventify-local\\BACKEND\\VentifyAPI\\**\\*" />
+    <None Remove="ventify-local\\BACKEND\\VentifyAPI\\**\\*" />
+    <EmbeddedResource Remove="ventify-local\\BACKEND\\VentifyAPI\\**\\*" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
+  </ItemGroup>
+
+  <!-- Exclude nested projects and backup/temp files so the root project doesn't compile other projects' sources -->
+  <ItemGroup>
+    <!-- Exclude the Papetarsis nested project sources (they have their own csproj) -->
+    <Compile Remove="Papetarsis\\**\\*.cs" />
+    <Content Remove="Papetarsis\\**\\*" />
+    <None Remove="Papetarsis\\**\\*" />
+    <EmbeddedResource Remove="Papetarsis\\**\\*" />
+
+    <!-- Exclude common backup and temp files accidentally left in the root -->
+    <Compile Remove="**\\*.bak" />
+    <Compile Remove="**\\*.temp" />
+    <Compile Remove="Program.cs.bak" />
+    <Compile Remove="Program.cs.temp" />
+
+    <!-- Exclude Back-Zona-30 folder if present; it's unrelated to the main project -->
+    <Compile Remove="Back-Zona-30\\**\\*.cs" />
+    <Content Remove="Back-Zona-30\\**\\*" />
+    <None Remove="Back-Zona-30\\**\\*" />
+  </ItemGroup>
+
+</Project>
