@@ -17,8 +17,20 @@ namespace VentifyAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend",
+                    builder => builder
+                        .WithOrigins(
+                            "http://localhost:4200",
+                            "https://phenomenal-strudel-befb4f.netlify.app"
+                        )
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials()
+                );
+            });
             services.AddControllers();
-            // Agrega aquí tus servicios, CORS, autenticación, etc.
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -29,6 +41,8 @@ namespace VentifyAPI
             }
 
             app.UseRouting();
+
+            app.UseCors("AllowFrontend");
 
             app.UseAuthorization();
 
