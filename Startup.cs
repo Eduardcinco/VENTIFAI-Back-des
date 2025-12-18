@@ -17,13 +17,13 @@ namespace VentifyAPI
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
+        {
             services.AddDbContext<VentifyAPI.Data.AppDbContext>(options =>
                 options.UseMySql(
                     Configuration.GetConnectionString("MySqlConnection"),
                     ServerVersion.AutoDetect(Configuration.GetConnectionString("MySqlConnection"))
                 )
             );
-        {
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",
