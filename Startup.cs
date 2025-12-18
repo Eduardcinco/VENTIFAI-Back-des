@@ -26,11 +26,12 @@ namespace VentifyAPI
             );
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAll",
+                options.AddPolicy("AllowFrontend",
                     builder => builder
-                        .AllowAnyOrigin()
+                        .WithOrigins("https://phenomenal-strudel-befb4f.netlify.app")
                         .AllowAnyHeader()
                         .AllowAnyMethod()
+                        .AllowCredentials()
                 );
             });
             services.AddControllers();
@@ -45,7 +46,7 @@ namespace VentifyAPI
 
             app.UseRouting();
 
-            app.UseCors("AllowAll");
+            app.UseCors("AllowFrontend");
 
             app.UseAuthorization();
 
