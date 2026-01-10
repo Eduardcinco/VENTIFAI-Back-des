@@ -26,22 +26,18 @@ namespace VentifyAPI.Controllers
         private static CookieOptions BuildCookieOptions(DateTime? expiresAt)
         {
             var isDev = string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase);
-            var domain = Environment.GetEnvironmentVariable("COOKIE_DOMAIN");
             
-            // En desarrollo: SameSite=Lax (mismo dominio localhost), Secure=false
-            // En producción: SameSite=None (cross-site), Secure=true
-            var sameSite = isDev ? SameSiteMode.Lax : SameSiteMode.None;
-            var secure = !isDev; // en dev permitimos http, en prod siempre https
-            
+            // En desarrollo: SameSite=Lax (localhost), Secure=false
+            // En producción (Railway): SameSite=None, Secure=true (HTTPS obligatorio)
+            // NO usar Domain en Railway - deja que el navegador maneje el dominio
             var opts = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = secure,
-                SameSite = sameSite,
+                Secure = !isDev,              // Secure=true en Railway (HTTPS), false en dev
+                SameSite = isDev ? SameSiteMode.Lax : SameSiteMode.None,
                 Path = "/",
+                Expires = expiresAt
             };
-            if (!string.IsNullOrWhiteSpace(domain)) opts.Domain = domain;
-            if (expiresAt.HasValue) opts.Expires = expiresAt.Value;
             return opts;
         }
 

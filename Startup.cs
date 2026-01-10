@@ -87,7 +87,17 @@ namespace VentifyAPI
                 });
 
             // ============================================================
-            // 4. CORS
+            // 4. COOKIE POLICY (Railway HTTPS + Cross-site)
+            // ============================================================
+            services.Configure<Microsoft.AspNetCore.Http.CookiePolicyOptions>(options =>
+            {
+                options.CheckConsentNeeded = context => false;
+                options.MinimumSameSitePolicy = Microsoft.AspNetCore.Http.SameSiteMode.None;
+                options.Secure = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+            });
+
+            // ============================================================
+            // 5. CORS
             // ============================================================
             services.AddCors(options =>
             {
@@ -99,7 +109,7 @@ namespace VentifyAPI
             });
 
             // ============================================================
-            // 5. SERVICES
+            // 6. SERVICES
             // ============================================================
             services.AddScoped<VentifyAPI.Services.ITokenService, VentifyAPI.Services.TokenService>();
             services.AddScoped<VentifyAPI.Services.PdfService>();
@@ -116,6 +126,7 @@ namespace VentifyAPI
                 app.UseDeveloperExceptionPage();
 
             app.UseRouting();
+            app.UseCookiePolicy();
             app.UseCors("AllowFrontend");
 
             app.UseAuthentication();
