@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VentifyAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+76a9f8ec365d988caaa45bd187dde178d10e2c3f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+554727397d4362bb2b4c686639db1382cfacdb05")]
 [assembly: System.Reflection.AssemblyProductAttribute("VentifyAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VentifyAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -89,15 +90,16 @@ namespace VentifyAPI
             // ============================================================
             // 4. COOKIE POLICY (Railway HTTPS + Cross-site)
             // ============================================================
-            services.Configure<Microsoft.AspNetCore.Http.CookiePolicyOptions>(options =>
+            services.ConfigureApplicationCookie(options =>
             {
-                options.CheckConsentNeeded = context => false;
-                options.MinimumSameSitePolicy = Microsoft.AspNetCore.Http.SameSiteMode.None;
-                options.Secure = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
+                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
             });
 
             // ============================================================
-            // 5. CORS
+            // 5. CORS (CRITICAL: AllowCredentials + WithOrigins, no AllowAnyOrigin)
             // ============================================================
             services.AddCors(options =>
             {
@@ -105,7 +107,8 @@ namespace VentifyAPI
                     builder.WithOrigins("https://phenomenal-strudel-befb4f.netlify.app")
                            .AllowAnyHeader()
                            .AllowAnyMethod()
-                           .AllowCredentials());
+                           .AllowCredentials()  // MUST be here for SameSite=None cookies
+                           .WithExposedHeaders("Content-Disposition", "X-Pagination"));
             });
 
             // ============================================================
@@ -124,6 +127,10 @@ namespace VentifyAPI
         {
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
+
+            // Debug middleware para loguear cookies (SOLO en Development)
+            if (env.IsDevelopment())
+                app.UseMiddleware<VentifyAPI.Middleware.CookieDebugMiddleware>();
 
             app.UseRouting();
             app.UseCookiePolicy();
