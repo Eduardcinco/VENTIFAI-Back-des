@@ -5,6 +5,7 @@ using VentifyAPI.Models;
 using VentifyAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace VentifyAPI.Controllers
 {
@@ -15,12 +16,14 @@ namespace VentifyAPI.Controllers
         private readonly AppDbContext _context;
         private readonly ITokenService _tokenService;
         private readonly VentifyAPI.Services.ITenantContext _tenant;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(AppDbContext context, ITokenService tokenService, VentifyAPI.Services.ITenantContext tenant)
+        public AuthController(AppDbContext context, ITokenService tokenService, VentifyAPI.Services.ITenantContext tenant, ILogger<AuthController> logger)
         {
             _context = context;
             _tokenService = tokenService;
             _tenant = tenant;
+            _logger = logger;
         }
 
         private static CookieOptions BuildCookieOptions(DateTime? expiresAt)
@@ -232,28 +235,71 @@ namespace VentifyAPI.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] DTOs.RefreshRequest req)
         {
+            _logger.LogInformation("🔄 REFRESH ENDPOINT CALLED");
+            _logger.LogInformation("   Total cookies received: {CookieCount}", Request.Cookies.Count);
+            
+            foreach (var cookie in Request.Cookies)
+            {
+                var display = cookie.Value.Length > 20 ? cookie.Value.Substring(0, 20) + "..." : cookie.Value;
+                _logger.LogInformation("   📥 Cookie: {Key} = {Value}", cookie.Key, display);
+            }
+
             // Permitir refresh usando cookie HttpOnly si no viene en body
             var incomingRt = req?.RefreshToken;
+            _logger.LogInformation("   RefreshToken en body: {HasValue}", !string.IsNullOrEmpty(incomingRt));
+
             if (string.IsNullOrEmpty(incomingRt))
             {
+                _logger.LogInformation("   Intentando leer refresh_token de cookies...");
                 incomingRt = Request.Cookies["refresh_token"];
+                _logger.LogInformation("   RefreshToken de cookie: {HasValue}", !string.IsNullOrEmpty(incomingRt));
             }
-            if (string.IsNullOrEmpty(incomingRt)) return BadRequest(new { message = "refreshToken is required" });
+
+            if (string.IsNullOrEmpty(incomingRt))
+            {
+                _logger.LogWarning("❌ refreshToken es requerido pero no se encontró en body ni en cookies");
+                return BadRequest(new { 
+                    message = "refreshToken is required",
+                    debug = new {
+                        cookieCount = Request.Cookies.Count,
+                        hasRefreshCookie = Request.Cookies.ContainsKey("refresh_token"),
+                        hasBodyToken = req?.RefreshToken != null
+                    }
+                });
+            }
+
+            _logger.LogInformation("✅ RefreshToken encontrado, buscando en DB...");
 
             var existing = await _context.RefreshTokens
                 .Include(rt => rt.Usuario)
                 .FirstOrDefaultAsync(rt => rt.Token == incomingRt);
 
-            if (existing == null || existing.Revoked || existing.ExpiresAt < DateTime.UtcNow)
+            if (existing == null)
             {
+                _logger.LogWarning("❌ RefreshToken no encontrado en DB");
+                return Unauthorized(new { message = "Invalid or expired refresh token." });
+            }
+
+            if (existing.Revoked)
+            {
+                _logger.LogWarning("❌ RefreshToken revocado");
+                return Unauthorized(new { message = "Invalid or expired refresh token." });
+            }
+
+            if (existing.ExpiresAt < DateTime.UtcNow)
+            {
+                _logger.LogWarning("❌ RefreshToken expirado. ExpiresAt: {ExpiresAt}, Now: {Now}", existing.ExpiresAt, DateTime.UtcNow);
                 return Unauthorized(new { message = "Invalid or expired refresh token." });
             }
 
             var user = existing.Usuario;
             if (user == null)
             {
+                _logger.LogWarning("❌ Usuario asociado al RefreshToken no encontrado");
                 return Unauthorized(new { message = "Usuario no encontrado para este refresh token." });
             }
+
+            _logger.LogInformation("✅ Validación exitosa. Generando nuevos tokens para usuarioId: {UserId}", user.Id);
 
             // create new tokens
             var (accessToken, newRefreshToken, expiresAt) = _tokenService.CreateTokens(user);
@@ -272,9 +318,12 @@ namespace VentifyAPI.Controllers
             _context.RefreshTokens.Add(newRt);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("✅ Nuevos tokens guardados. Actualizando cookies...");
+
             // Actualizar cookies
             Response.Cookies.Append("access_token", accessToken, BuildCookieOptions(expiresAt));
             Response.Cookies.Append("refresh_token", newRefreshToken, BuildCookieOptions(expiresAt.AddDays(7)));
+            
             // Incluir datos mínimos del usuario para refrescar sesión/Sidebar (incluye fotoPerfilUrl)
             return Ok(new 
             { 
