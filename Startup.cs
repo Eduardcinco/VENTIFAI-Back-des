@@ -23,104 +23,100 @@ namespace VentifyAPI
         public void ConfigureServices(IServiceCollection services)
         {
             // ============================================================
-            // 1. REGISTRAR TENANT CONTEXT (RESUELVE EL ERROR PRINCIPAL)
+            // 1. TENANT CONTEXT
             // ============================================================
             services.AddScoped<VentifyAPI.Services.ITenantContext, VentifyAPI.Services.TenantContext>();
 
             // ============================================================
-            // 2. CONFIGURAR BASE DE DATOS (SIN AUTODETECT - FIX CRÍTICO)
+            // 2. DATABASE (RAILWAY SAFE)
             // ============================================================
-            var connectionString = Configuration.GetConnectionString("MySqlConnection") 
-                ?? Environment.GetEnvironmentVariable("ConnectionStrings__MySqlConnection")
-                ?? "Server=localhost;Database=ventify;User=root;Password=password;";
+            var connectionString =
+                Configuration.GetConnectionString("MySqlConnection")
+                ?? Environment.GetEnvironmentVariable("ConnectionStrings__MySqlConnection");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new Exception("❌ MySQL connection string NOT configured.");
 
             services.AddDbContext<VentifyAPI.Data.AppDbContext>(options =>
                 options.UseMySql(
                     connectionString,
-                    new MySqlServerVersion(new Version(8, 0, 21)) // ✅ CAMBIO CRÍTICO: Versión fija
+                    new MySqlServerVersion(new Version(8, 0, 21)),
+                    mysql => mysql.EnableRetryOnFailure(
+                        5,
+                        TimeSpan.FromSeconds(10),
+                        null
+                    )
                 )
             );
 
             // ============================================================
-            // 3. CONFIGURAR JWT AUTHENTICATION
+            // 3. JWT
             // ============================================================
-            var jwtSecret = Configuration["Jwt:Secret"] 
-                ?? Environment.GetEnvironmentVariable("Jwt__Secret")
-                ?? "ventify-super-secret-key-change-this-in-production-minimum-32-characters-long";
-            
+            var jwtSecret =
+                Configuration["Jwt:Secret"]
+                ?? Environment.GetEnvironmentVariable("Jwt__Secret");
+
+            if (string.IsNullOrWhiteSpace(jwtSecret))
+                throw new Exception("❌ JWT secret NOT configured.");
+
             var key = Encoding.ASCII.GetBytes(jwtSecret);
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.RequireHttpsMetadata = false;
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ClockSkew = TimeSpan.Zero
-                };
-
-                // Permitir leer token desde cookies
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        if (context.Request.Cookies.ContainsKey("access_token"))
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ClockSkew = TimeSpan.Zero
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
                         {
-                            context.Token = context.Request.Cookies["access_token"];
+                            if (context.Request.Cookies.ContainsKey("access_token"))
+                                context.Token = context.Request.Cookies["access_token"];
+                            return System.Threading.Tasks.Task.CompletedTask;
                         }
-                        return System.Threading.Tasks.Task.CompletedTask;
-                    }
-                };
-            });
+                    };
+                });
 
             // ============================================================
-            // 4. CONFIGURAR CORS
+            // 4. CORS
             // ============================================================
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowFrontend",
-                    builder => builder
-                        .AllowAnyOrigin()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                );
+                options.AddPolicy("AllowFrontend", builder =>
+                    builder.AllowAnyOrigin()
+                           .AllowAnyHeader()
+                           .AllowAnyMethod());
             });
 
             // ============================================================
-            // 5. REGISTRAR SERVICIOS NECESARIOS
+            // 5. SERVICES
             // ============================================================
             services.AddScoped<VentifyAPI.Services.ITokenService, VentifyAPI.Services.TokenService>();
             services.AddScoped<VentifyAPI.Services.PdfService>();
             services.AddScoped<VentifyAPI.Services.TicketService>();
             services.AddScoped<VentifyAPI.Services.AiService>();
-            services.AddHttpClient(); // Para AiService
+            services.AddHttpClient();
 
-            // ============================================================
-            // 6. AGREGAR CONTROLADORES
-            // ============================================================
             services.AddControllers();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
 
             app.UseRouting();
             app.UseCors("AllowFrontend");
-            
-            // IMPORTANTE: Authentication ANTES de Authorization
+
             app.UseAuthentication();
             app.UseAuthorization();
 
