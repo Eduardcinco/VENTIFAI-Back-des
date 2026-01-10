@@ -103,12 +103,16 @@ namespace VentifyAPI
             // ============================================================
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowFrontend", builder =>
-                    builder.WithOrigins("https://phenomenal-strudel-befb4f.netlify.app")
-                           .AllowAnyHeader()
-                           .AllowAnyMethod()
-                           .AllowCredentials()  // MUST be here for SameSite=None cookies
-                           .WithExposedHeaders("Content-Disposition", "X-Pagination"));
+                options.AddPolicy("CorsPolicy", builder =>
+                    builder.WithOrigins(
+                        "http://localhost:4200",
+                        "https://phenomenal-strudel-befb4f.netlify.app"
+                    )
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    .WithExposedHeaders("Content-Disposition", "X-Pagination")
+                );
             });
 
             // ============================================================
@@ -133,9 +137,8 @@ namespace VentifyAPI
                 app.UseMiddleware<VentifyAPI.Middleware.CookieDebugMiddleware>();
 
             app.UseRouting();
+            app.UseCors("CorsPolicy"); // CORS debe ir antes de auth
             app.UseCookiePolicy();
-            app.UseCors("AllowFrontend");
-
             app.UseAuthentication();
             app.UseAuthorization();
 
