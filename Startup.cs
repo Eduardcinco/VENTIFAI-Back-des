@@ -24,16 +24,17 @@ namespace VentifyAPI
                     ServerVersion.AutoDetect(Configuration.GetConnectionString("MySqlConnection"))
                 )
             );
+
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend",
                     builder => builder
-                        .WithOrigins("https://phenomenal-strudel-befb4f.netlify.app")
+                        .AllowAnyOrigin()
                         .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .AllowCredentials()
                 );
             });
+
             services.AddControllers();
         }
 
