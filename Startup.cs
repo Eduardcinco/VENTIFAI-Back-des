@@ -92,9 +92,10 @@ namespace VentifyAPI
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", builder =>
-                    builder.AllowAnyOrigin()
+                    builder.WithOrigins("https://phenomenal-strudel-befb4f.netlify.app")
                            .AllowAnyHeader()
-                           .AllowAnyMethod());
+                           .AllowAnyMethod()
+                           .AllowCredentials());
             });
 
             // ============================================================
