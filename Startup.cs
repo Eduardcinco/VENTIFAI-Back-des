@@ -28,7 +28,7 @@ namespace VentifyAPI
             services.AddScoped<VentifyAPI.Services.ITenantContext, VentifyAPI.Services.TenantContext>();
 
             // ============================================================
-            // 2. CONFIGURAR BASE DE DATOS
+            // 2. CONFIGURAR BASE DE DATOS (SIN AUTODETECT - FIX CRÍTICO)
             // ============================================================
             var connectionString = Configuration.GetConnectionString("MySqlConnection") 
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings__MySqlConnection")
@@ -37,7 +37,7 @@ namespace VentifyAPI
             services.AddDbContext<VentifyAPI.Data.AppDbContext>(options =>
                 options.UseMySql(
                     connectionString,
-                    ServerVersion.AutoDetect(connectionString)
+                    new MySqlServerVersion(new Version(8, 0, 21)) // ✅ CAMBIO CRÍTICO: Versión fija
                 )
             );
 
