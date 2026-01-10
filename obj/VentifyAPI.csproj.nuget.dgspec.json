@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\torbe\\Documents\\A - GIT\\Proyectos\\back\\VentifyAPI.csproj": {}
+    "C:\\Users\\torbe\\Documents\\A - GIT\\Proyectos\\Back\\VentifyAPI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\torbe\\Documents\\A - GIT\\Proyectos\\back\\VentifyAPI.csproj": {
+    "C:\\Users\\torbe\\Documents\\A - GIT\\Proyectos\\Back\\VentifyAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\torbe\\Documents\\A - GIT\\Proyectos\\back\\VentifyAPI.csproj",
+        "projectUniqueName": "C:\\Users\\torbe\\Documents\\A - GIT\\Proyectos\\Back\\VentifyAPI.csproj",
         "projectName": "VentifyAPI",
-        "projectPath": "C:\\Users\\torbe\\Documents\\A - GIT\\Proyectos\\back\\VentifyAPI.csproj",
+        "projectPath": "C:\\Users\\torbe\\Documents\\A - GIT\\Proyectos\\Back\\VentifyAPI.csproj",
         "packagesPath": "C:\\Users\\torbe\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\torbe\\Documents\\A - GIT\\Proyectos\\back\\obj\\",
+        "outputPath": "C:\\Users\\torbe\\Documents\\A - GIT\\Proyectos\\Back\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\torbe\\AppData\\Roaming\\NuGet\\NuGet.Config",
