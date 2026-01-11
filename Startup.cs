@@ -90,7 +90,8 @@ namespace VentifyAPI
             // ============================================================
             // 4. COOKIE POLICY (Railway HTTPS + Cross-site)
             // ============================================================
-            services.ConfigureApplicationCookie(options =>
+            services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
             {
                 options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
                 options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
@@ -113,6 +114,10 @@ namespace VentifyAPI
                     .AllowCredentials()
                     .WithExposedHeaders("Content-Disposition", "X-Pagination")
                 );
+            });
+            services.AddCookiePolicy(options =>
+            {
+                options.MinimumSameSitePolicy = Microsoft.AspNetCore.Http.SameSiteMode.None;
             });
 
             // ============================================================
@@ -137,7 +142,7 @@ namespace VentifyAPI
                 app.UseMiddleware<VentifyAPI.Middleware.CookieDebugMiddleware>();
 
             app.UseRouting();
-            app.UseCors("CorsPolicy"); // CORS debe ir antes de auth
+            app.UseCors("AllowFrontend"); // CORS debe ir antes de auth
             app.UseCookiePolicy();
             app.UseAuthentication();
             app.UseAuthorization();
