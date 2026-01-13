@@ -32,8 +32,8 @@ namespace VentifyAPI
             // 2. DATABASE (RAILWAY SAFE)
             // ============================================================
             var connectionString =
-                Configuration.GetConnectionString("MySqlConnection")
-                ?? Environment.GetEnvironmentVariable("ConnectionStrings__MySqlConnection");
+                Configuration.GetConnectionString("DefaultConnection")
+                ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new Exception("❌ MySQL connection string NOT configured.");
