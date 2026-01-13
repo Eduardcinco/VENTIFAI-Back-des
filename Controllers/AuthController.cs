@@ -9,6 +9,10 @@ using Microsoft.Extensions.Logging;
 
 namespace VentifyAPI.Controllers
 {
+    /// <summary>
+    /// Autenticación y gestión de usuarios
+    /// Build: 2025-01-13 - Rutas normalizadas a minúsculas
+    /// </summary>
     [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
