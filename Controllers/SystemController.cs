@@ -65,10 +65,11 @@ namespace VentifyAPI.Controllers
                 asignadoPorNombre = asignador?.Nombre;
             }
 
-            var rol = user.FindFirst(ClaimTypes.Role)?.Value ?? user.FindFirst("rol")?.Value;
-            var negocioId = user.FindFirst("negocioId")?.Value;
-            var email = user.FindFirst(ClaimTypes.Email)?.Value;
-            var name = user.FindFirst(ClaimTypes.Name)?.Value;
+            // Leer datos frescos del usuario (rol, negocioId, email, nombre)
+            var rol = usuario.Rol;
+            var negocioId = usuario.NegocioId;
+            var email = usuario.Correo;
+            var name = usuario.Nombre;
 
             return Ok(new { 
                 isAuthenticated = true,

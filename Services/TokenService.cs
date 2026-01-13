@@ -32,6 +32,8 @@ namespace VentifyAPI.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            // Leer rol actualizado de la base de datos (por si cambió)
+            var rol = user.Rol ?? string.Empty;
             var claimList = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -40,9 +42,9 @@ namespace VentifyAPI.Services
                 new Claim(JwtRegisteredClaimNames.Email, user.Correo ?? string.Empty),
                 new Claim("nombre", user.Nombre ?? string.Empty),
                 // Incluir rol en el claim estándar para que [Authorize(Roles=...)] funcione
-                new Claim(ClaimTypes.Role, user.Rol ?? string.Empty),
+                new Claim(ClaimTypes.Role, rol),
                 // Mantener claim "rol" para el frontend si lo usa
-                new Claim("rol", user.Rol ?? string.Empty),
+                new Claim("rol", rol),
                 // Control de sesiones: versión del token
                 new Claim("tokenVersion", (user.TokenVersion).ToString())
             };
