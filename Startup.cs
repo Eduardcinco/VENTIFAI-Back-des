@@ -102,16 +102,16 @@ namespace VentifyAPI
             // ============================================================
             // 5. CORS (CRITICAL: AllowCredentials + WithOrigins, no AllowAnyOrigin)
             // ============================================================
-            services.AddCors(options =>
-            {
-                options.AddPolicy("AllowFrontend", builder =>
+                services.AddCors(options =>
                 {
-                    builder.WithOrigins("https://ventifive.netlify.app")
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials();
+                    options.AddPolicy("AllowVentifive", builder =>
+                    {
+                        builder.WithOrigins("https://ventifive.netlify.app")
+                            .AllowAnyMethod()
+                            .AllowAnyHeader()
+                            .AllowCredentials();
+                    });
                 });
-            });
             services.AddCookiePolicy(options =>
             {
                 options.MinimumSameSitePolicy = Microsoft.AspNetCore.Http.SameSiteMode.None;
@@ -141,7 +141,7 @@ namespace VentifyAPI
             app.UseMiddleware<VentifyAPI.Middleware.CorsDebugMiddleware>();
 
             app.UseRouting();
-            app.UseCors("AllowFrontend"); // CORS debe ir antes de auth
+                app.UseCors("AllowVentifive"); // CORS debe ir antes de auth
             app.UseCookiePolicy();
             app.UseAuthentication();
             app.UseAuthorization();
