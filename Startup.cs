@@ -104,13 +104,11 @@ namespace VentifyAPI
             // ============================================================
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowNetlify", builder =>
-                    builder.WithOrigins(
-                        "https://ventifive.netlify.app"
-                    )
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials()
+                options.AddPolicy("AllowFrontend", builder =>
+                    builder.WithOrigins("https://ventifive.netlify.app")
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 );
             });
             services.AddCookiePolicy(options =>
@@ -142,7 +140,7 @@ namespace VentifyAPI
             app.UseMiddleware<VentifyAPI.Middleware.CorsDebugMiddleware>();
 
             app.UseRouting();
-            app.UseCors("AllowNetlify"); // CORS debe ir antes de auth
+            app.UseCors("AllowFrontend"); // CORS debe ir antes de auth
             app.UseCookiePolicy();
             app.UseAuthentication();
             app.UseAuthorization();
