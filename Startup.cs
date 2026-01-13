@@ -105,11 +105,12 @@ namespace VentifyAPI
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowFrontend", builder =>
+                {
                     builder.WithOrigins("https://ventifive.netlify.app")
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();
-                );
+                });
             });
             services.AddCookiePolicy(options =>
             {
