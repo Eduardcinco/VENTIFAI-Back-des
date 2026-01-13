@@ -9,7 +9,7 @@ using VentifyAPI.Services;
 
 namespace VentifyAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/usuarios")]
     [ApiController]
     [Authorize]
     public class UsuariosController : ControllerBase
@@ -38,17 +38,17 @@ namespace VentifyAPI.Controllers
         }
 
         // GET: api/usuarios/empleados
-        // Solo Dueño y Gerente pueden ver la lista de empleados
+        // Solo DueÃ±o y Gerente pueden ver la lista de empleados
         [HttpGet("empleados")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> GetEmpleados()
         {
             if (!TryGetUserAndNegocio(out var requester, out var negocioId))
             {
-                return Unauthorized(new { message = "Token inválido o negocio no asignado." });
+                return Unauthorized(new { message = "Token invÃ¡lido o negocio no asignado." });
             }
 
-            // Devolver TODOS los usuarios del negocio (excepto el que hace la petición)
+            // Devolver TODOS los usuarios del negocio (excepto el que hace la peticiÃ³n)
             var empleados = await _context.Usuarios
                 .Where(u => u.NegocioId == negocioId && u.Id != requester.Id)
                 .Select(u => new
@@ -111,14 +111,14 @@ namespace VentifyAPI.Controllers
         }
 
         // PUT: api/usuarios/{id}
-        // Solo Dueño y Gerente pueden editar empleados
+        // Solo DueÃ±o y Gerente pueden editar empleados
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> UpdateEmpleado(int id, [FromBody] DTOs.CrearEmpleadoDTO dto)
         {
             if (!TryGetUserAndNegocio(out var requester, out var negocioId))
             {
-                return Unauthorized(new { message = "Token inválido o negocio no asignado." });
+                return Unauthorized(new { message = "Token invÃ¡lido o negocio no asignado." });
             }
 
             var empleado = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.NegocioId == negocioId && u.Id != requester.Id);
@@ -127,11 +127,11 @@ namespace VentifyAPI.Controllers
                 return NotFound(new { message = "Usuario no encontrado en tu negocio." });
             }
 
-            // No permitir editar al dueño original
+            // No permitir editar al dueÃ±o original
             var negocio = await _context.Negocios.FindAsync(negocioId);
             if (negocio != null && negocio.OwnerId == id)
             {
-                return BadRequest(new { message = "No se puede editar al dueño original del negocio desde aquí." });
+                return BadRequest(new { message = "No se puede editar al dueÃ±o original del negocio desde aquÃ­." });
             }
 
             if (!string.IsNullOrWhiteSpace(dto.Nombre)) empleado.Nombre = dto.Nombre;
@@ -141,7 +141,7 @@ namespace VentifyAPI.Controllers
             {
                 if (dto.Telefono.Length != 10 || !dto.Telefono.All(char.IsDigit))
                 {
-                    return BadRequest(new { message = "Telefono debe tener exactamente 10 dígitos numéricos." });
+                    return BadRequest(new { message = "Telefono debe tener exactamente 10 dÃ­gitos numÃ©ricos." });
                 }
                 empleado.Telefono = dto.Telefono;
             }
@@ -150,10 +150,10 @@ namespace VentifyAPI.Controllers
             // Actualizar campos nuevos de Settings
             if (!string.IsNullOrWhiteSpace(dto.RFC))
             {
-                var rfcPattern = @"^[A-ZÑ&]{4}\d{6}[A-Z0-9]{3}$";
+                var rfcPattern = @"^[A-ZÃ‘&]{4}\d{6}[A-Z0-9]{3}$";
                 if (!System.Text.RegularExpressions.Regex.IsMatch(dto.RFC.ToUpper(), rfcPattern))
                 {
-                    return BadRequest(new { message = "RFC inválido. Debe tener el formato correcto (ej: PEPJ900101H02)." });
+                    return BadRequest(new { message = "RFC invÃ¡lido. Debe tener el formato correcto (ej: PEPJ900101H02)." });
                 }
                 empleado.RFC = dto.RFC.ToUpper();
             }
@@ -171,14 +171,14 @@ namespace VentifyAPI.Controllers
         }
 
         // POST: api/usuarios/{id}/reset-password
-        // Solo Dueño y Gerente pueden resetear contraseñas
+        // Solo DueÃ±o y Gerente pueden resetear contraseÃ±as
         [HttpPost("{id:int}/reset-password")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> ResetPassword(int id)
         {
             if (!TryGetUserAndNegocio(out var requester, out var negocioId))
             {
-                return Unauthorized(new { message = "Token inválido o negocio no asignado." });
+                return Unauthorized(new { message = "Token invÃ¡lido o negocio no asignado." });
             }
 
             var empleado = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.NegocioId == negocioId && u.Rol == "empleado");
@@ -191,7 +191,7 @@ namespace VentifyAPI.Controllers
             empleado.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Contraseña restablecida.", credenciales = new { correo = empleado.Correo, password = newPassword } });
+            return Ok(new { message = "ContraseÃ±a restablecida.", credenciales = new { correo = empleado.Correo, password = newPassword } });
         }
 
         // POST: api/usuarios/cambiar-password
@@ -201,7 +201,7 @@ namespace VentifyAPI.Controllers
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
-                return Unauthorized(new { message = "Token inválido." });
+                return Unauthorized(new { message = "Token invÃ¡lido." });
             }
 
             var usuario = await _context.Usuarios.FindAsync(userId);
@@ -210,34 +210,34 @@ namespace VentifyAPI.Controllers
                 return NotFound(new { message = "Usuario no encontrado." });
             }
 
-            // Verificar contraseña actual
+            // Verificar contraseÃ±a actual
             if (!BCrypt.Net.BCrypt.Verify(dto.PasswordActual, usuario.Password))
             {
-                return BadRequest(new { message = "La contraseña actual es incorrecta." });
+                return BadRequest(new { message = "La contraseÃ±a actual es incorrecta." });
             }
 
-            // Validar nueva contraseña
+            // Validar nueva contraseÃ±a
             if (string.IsNullOrWhiteSpace(dto.PasswordNueva) || dto.PasswordNueva.Length < 6)
             {
-                return BadRequest(new { message = "La nueva contraseña debe tener al menos 6 caracteres." });
+                return BadRequest(new { message = "La nueva contraseÃ±a debe tener al menos 6 caracteres." });
             }
 
-            // Actualizar contraseña
+            // Actualizar contraseÃ±a
             usuario.Password = BCrypt.Net.BCrypt.HashPassword(dto.PasswordNueva);
             await _context.SaveChangesAsync();
 
-            return Ok(new { success = true, message = "Contraseña actualizada correctamente." });
+            return Ok(new { success = true, message = "ContraseÃ±a actualizada correctamente." });
         }
 
         // PUT: api/usuarios/{id}/password
-        // Solo Dueño y Gerente pueden cambiar password de otros usuarios
+        // Solo DueÃ±o y Gerente pueden cambiar password de otros usuarios
         [HttpPut("{id:int}/password")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> CambiarPasswordUsuario(int id, [FromBody] DTOs.CambiarPasswordUsuarioDTO dto)
         {
             if (!TryGetUserAndNegocio(out var requester, out var negocioId))
             {
-                return Unauthorized(new { message = "Token inválido o negocio no asignado." });
+                return Unauthorized(new { message = "Token invÃ¡lido o negocio no asignado." });
             }
 
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.NegocioId == negocioId);
@@ -248,13 +248,13 @@ namespace VentifyAPI.Controllers
 
             if (string.IsNullOrWhiteSpace(dto?.PasswordNueva) || dto.PasswordNueva.Length < 6)
             {
-                return BadRequest(new { message = "La nueva contraseña debe tener al menos 6 caracteres." });
+                return BadRequest(new { message = "La nueva contraseÃ±a debe tener al menos 6 caracteres." });
             }
 
             usuario.Password = BCrypt.Net.BCrypt.HashPassword(dto.PasswordNueva);
             await _context.SaveChangesAsync();
 
-            return Ok(new { success = true, message = "Contraseña actualizada correctamente.", credenciales = new { correo = usuario.Correo, password = dto.PasswordNueva } });
+            return Ok(new { success = true, message = "ContraseÃ±a actualizada correctamente.", credenciales = new { correo = usuario.Correo, password = dto.PasswordNueva } });
         }
 
         // GET: api/usuarios/perfil
@@ -264,7 +264,7 @@ namespace VentifyAPI.Controllers
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
-                return Unauthorized(new { message = "Token inválido." });
+                return Unauthorized(new { message = "Token invÃ¡lido." });
             }
 
             var usuario = await _context.Usuarios.FindAsync(userId);
@@ -311,14 +311,14 @@ namespace VentifyAPI.Controllers
         }
 
         // PUT: api/usuarios/mi-perfil
-        // TODOS pueden actualizar su propio perfil (nombre, apellidos, teléfono)
+        // TODOS pueden actualizar su propio perfil (nombre, apellidos, telÃ©fono)
         [HttpPut("mi-perfil")]
         public async Task<IActionResult> UpdateMiPerfil([FromBody] ActualizarMiPerfilDTO dto)
         {
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
-                return Unauthorized(new { message = "Token inválido." });
+                return Unauthorized(new { message = "Token invÃ¡lido." });
             }
 
             var usuario = await _context.Usuarios.FindAsync(userId);
@@ -334,14 +334,14 @@ namespace VentifyAPI.Controllers
             if (!string.IsNullOrWhiteSpace(dto.Apellido1))
                 usuario.Apellido1 = dto.Apellido1;
             
-            if (dto.Apellido2 != null) // Permitir vacío para borrar
+            if (dto.Apellido2 != null) // Permitir vacÃ­o para borrar
                 usuario.Apellido2 = string.IsNullOrWhiteSpace(dto.Apellido2) ? null : dto.Apellido2;
             
             if (!string.IsNullOrWhiteSpace(dto.Telefono))
             {
                 if (dto.Telefono.Length != 10 || !dto.Telefono.All(char.IsDigit))
                 {
-                    return BadRequest(new { message = "Teléfono debe tener exactamente 10 dígitos numéricos." });
+                    return BadRequest(new { message = "TelÃ©fono debe tener exactamente 10 dÃ­gitos numÃ©ricos." });
                 }
                 usuario.Telefono = dto.Telefono;
             }
@@ -371,7 +371,7 @@ namespace VentifyAPI.Controllers
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
-                return Unauthorized(new { message = "Token inválido." });
+                return Unauthorized(new { message = "Token invÃ¡lido." });
             }
 
             var usuario = await _context.Usuarios.FindAsync(userId);
@@ -383,14 +383,14 @@ namespace VentifyAPI.Controllers
             // Validar formato de email
             if (string.IsNullOrWhiteSpace(dto.NuevoCorreo) || !dto.NuevoCorreo.Contains("@"))
             {
-                return BadRequest(new { message = "El correo electrónico no es válido." });
+                return BadRequest(new { message = "El correo electrÃ³nico no es vÃ¡lido." });
             }
 
-            // Verificar que el correo no esté en uso
+            // Verificar que el correo no estÃ© en uso
             var correoExiste = await _context.Usuarios.AnyAsync(u => u.Correo == dto.NuevoCorreo && u.Id != userId);
             if (correoExiste)
             {
-                return BadRequest(new { message = "Este correo ya está registrado." });
+                return BadRequest(new { message = "Este correo ya estÃ¡ registrado." });
             }
 
             // Actualizar correo
@@ -407,7 +407,7 @@ namespace VentifyAPI.Controllers
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
-                return Unauthorized(new { message = "Token inválido." });
+                return Unauthorized(new { message = "Token invÃ¡lido." });
             }
 
             var usuario = await _context.Usuarios.FindAsync(userId);
@@ -442,7 +442,7 @@ namespace VentifyAPI.Controllers
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
-                return Unauthorized(new { message = "Token inválido." });
+                return Unauthorized(new { message = "Token invÃ¡lido." });
             }
 
             var usuario = await _context.Usuarios.FindAsync(userId);
@@ -451,20 +451,20 @@ namespace VentifyAPI.Controllers
                 return NotFound(new { message = "Usuario no encontrado." });
             }
 
-            // Validar que se envió un archivo
+            // Validar que se enviÃ³ un archivo
             if (file == null || file.Length == 0)
             {
-                return BadRequest(new { message = "No se recibió ningún archivo." });
+                return BadRequest(new { message = "No se recibiÃ³ ningÃºn archivo." });
             }
 
             // Validar tipo MIME
             var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png" };
             if (!allowedTypes.Contains(file.ContentType.ToLower()))
             {
-                return BadRequest(new { message = "Solo se permiten imágenes JPG o PNG." });
+                return BadRequest(new { message = "Solo se permiten imÃ¡genes JPG o PNG." });
             }
 
-            // Validar tamaño (máximo 5MB)
+            // Validar tamaÃ±o (mÃ¡ximo 5MB)
             if (file.Length > 5 * 1024 * 1024)
             {
                 return BadRequest(new { message = "La imagen no puede superar 5MB." });
@@ -474,7 +474,7 @@ namespace VentifyAPI.Controllers
             var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "usuarios", userId.ToString());
             Directory.CreateDirectory(uploadsPath);
 
-            // Generar nombre único
+            // Generar nombre Ãºnico
             var extension = Path.GetExtension(file.FileName);
             var fileName = $"perfil_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
             var filePath = Path.Combine(uploadsPath, fileName);
@@ -512,7 +512,7 @@ namespace VentifyAPI.Controllers
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Correo == dto.Correo);
             if (usuario == null) return NotFound(new { message = "Usuario no encontrado." });
 
-            if (dto.NuevaPassword.Length < 6) return BadRequest(new { message = "La nueva contraseña debe tener al menos 6 caracteres." });
+            if (dto.NuevaPassword.Length < 6) return BadRequest(new { message = "La nueva contraseÃ±a debe tener al menos 6 caracteres." });
 
             usuario.Password = BCrypt.Net.BCrypt.HashPassword(dto.NuevaPassword);
             await _context.SaveChangesAsync();
@@ -527,7 +527,7 @@ namespace VentifyAPI.Controllers
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId))
             {
-                return Unauthorized(new { message = "Token inválido." });
+                return Unauthorized(new { message = "Token invÃ¡lido." });
             }
 
             var usuario = await _context.Usuarios.FindAsync(userId);
@@ -536,7 +536,7 @@ namespace VentifyAPI.Controllers
                 return NotFound(new { message = "Usuario no encontrado." });
             }
 
-            // Si se solicita mantener la sesión actual
+            // Si se solicita mantener la sesiÃ³n actual
             var mantenerActual = dto?.MantenerSesionActual ?? false;
             string? tokenActual = null;
 
@@ -552,7 +552,7 @@ namespace VentifyAPI.Controllers
                     if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
                     {
                         // En este caso, solo incrementamos TokenVersion pero no revocamos
-                        // el refresh token asociado a esta sesión
+                        // el refresh token asociado a esta sesiÃ³n
                     }
                 }
             }
@@ -571,7 +571,7 @@ namespace VentifyAPI.Controllers
             var sesionesRevocadas = 0;
             foreach (var rt in refreshTokens)
             {
-                // Si se debe mantener la sesión actual y este es el token actual, no revocarlo
+                // Si se debe mantener la sesiÃ³n actual y este es el token actual, no revocarlo
                 if (mantenerActual && !string.IsNullOrEmpty(tokenActual) && rt.Token == tokenActual)
                 {
                     continue; // Saltar este token
@@ -584,7 +584,7 @@ namespace VentifyAPI.Controllers
             await _context.SaveChangesAsync();
 
             var mensaje = mantenerActual 
-                ? $"Se cerraron {sesionesRevocadas} sesiones. Sesión actual mantenida."
+                ? $"Se cerraron {sesionesRevocadas} sesiones. SesiÃ³n actual mantenida."
                 : $"Se cerraron {sesionesRevocadas} sesiones activas.";
 
             return Ok(new { 
@@ -596,14 +596,14 @@ namespace VentifyAPI.Controllers
         }
 
         // PUT: api/usuarios/{id}/rol
-        // Solo Dueño y Gerente pueden cambiar el rol de un usuario
+        // Solo DueÃ±o y Gerente pueden cambiar el rol de un usuario
         [HttpPut("{id:int}/rol")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> CambiarRol(int id, [FromBody] CambiarRolDTO dto)
         {
             if (!TryGetUserAndNegocio(out var requester, out var negocioId))
             {
-                return Unauthorized(new { message = "Token inválido o negocio no asignado." });
+                return Unauthorized(new { message = "Token invÃ¡lido o negocio no asignado." });
             }
 
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.NegocioId == negocioId);
@@ -612,30 +612,30 @@ namespace VentifyAPI.Controllers
                 return NotFound(new { message = "Usuario no encontrado en tu negocio." });
             }
 
-            // Validar que el rol sea válido
-            var rolesValidos = new[] { "dueño", "Dueño", "Dueno", "gerente", "Gerente", "cajero", "Cajero", "almacenista", "Almacenista" };
+            // Validar que el rol sea vÃ¡lido
+            var rolesValidos = new[] { "dueÃ±o", "DueÃ±o", "Dueno", "gerente", "Gerente", "cajero", "Cajero", "almacenista", "Almacenista" };
             if (string.IsNullOrWhiteSpace(dto.Rol) || !rolesValidos.Contains(dto.Rol))
             {
-                return BadRequest(new { message = "Rol inválido. Use: Dueño, Gerente, Cajero o Almacenista." });
+                return BadRequest(new { message = "Rol invÃ¡lido. Use: DueÃ±o, Gerente, Cajero o Almacenista." });
             }
 
-            // No permitir cambiar el rol del dueño original
+            // No permitir cambiar el rol del dueÃ±o original
             var negocio = await _context.Negocios.FindAsync(negocioId);
             if (negocio != null && negocio.OwnerId == id)
             {
-                return BadRequest(new { message = "No se puede cambiar el rol del dueño original del negocio." });
+                return BadRequest(new { message = "No se puede cambiar el rol del dueÃ±o original del negocio." });
             }
 
-            // No permitir que un gerente o empleado cambie el rol de un usuario con rol "dueño"
+            // No permitir que un gerente o empleado cambie el rol de un usuario con rol "dueÃ±o"
             var requesterRol = requester.Rol?.ToLower();
             var usuarioRol = usuario.Rol?.ToLower();
-            if (usuarioRol == "dueño" && requesterRol != "dueño")
+            if (usuarioRol == "dueÃ±o" && requesterRol != "dueÃ±o")
             {
                 return Forbid();
             }
 
-            // Solo el dueño puede asignar rol de Gerente
-            if (dto.Rol.ToLower() == "gerente" && requesterRol != "dueño")
+            // Solo el dueÃ±o puede asignar rol de Gerente
+            if (dto.Rol.ToLower() == "gerente" && requesterRol != "dueÃ±o")
             {
                 return Forbid();
             }
@@ -647,14 +647,14 @@ namespace VentifyAPI.Controllers
         }
 
         // PUT: api/usuarios/{id}/permisos-extra
-        // Solo Dueño y Gerente pueden asignar permisos extra
+        // Solo DueÃ±o y Gerente pueden asignar permisos extra
         [HttpPut("{id:int}/permisos-extra")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> AsignarPermisosExtra(int id, [FromBody] PermisosExtraDTO dto)
         {
             if (!TryGetUserAndNegocio(out var requester, out var negocioId))
             {
-                return Unauthorized(new { message = "Token inválido o negocio no asignado." });
+                return Unauthorized(new { message = "Token invÃ¡lido o negocio no asignado." });
             }
 
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.NegocioId == negocioId);
@@ -663,14 +663,14 @@ namespace VentifyAPI.Controllers
                 return NotFound(new { message = "Usuario no encontrado en tu negocio." });
             }
 
-            // No permitir asignar permisos extra al dueño original
+            // No permitir asignar permisos extra al dueÃ±o original
             var negocio = await _context.Negocios.FindAsync(negocioId);
             if (negocio != null && negocio.OwnerId == id)
             {
-                return BadRequest(new { message = "El dueño ya tiene todos los permisos." });
+                return BadRequest(new { message = "El dueÃ±o ya tiene todos los permisos." });
             }
 
-            // Validar módulos
+            // Validar mÃ³dulos
             var modulosValidos = new[] { "inventario", "pos", "caja", "reportes", "clientes" };
             var modulosLimpios = dto.Modulos?
                 .Select(m => m.ToLower().Trim())
@@ -680,7 +680,7 @@ namespace VentifyAPI.Controllers
 
             if (modulosLimpios.Count == 0)
             {
-                // Si no hay módulos, limpiar permisos extra
+                // Si no hay mÃ³dulos, limpiar permisos extra
                 usuario.PermisosExtra = null;
                 usuario.PermisosExtraAsignadoPor = null;
                 usuario.PermisosExtraFecha = null;
@@ -714,14 +714,14 @@ namespace VentifyAPI.Controllers
         }
 
         // DELETE: api/usuarios/{id}/permisos-extra
-        // Solo Dueño y Gerente pueden quitar permisos extra
+        // Solo DueÃ±o y Gerente pueden quitar permisos extra
         [HttpDelete("{id:int}/permisos-extra")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> QuitarPermisosExtra(int id)
         {
             if (!TryGetUserAndNegocio(out var requester, out var negocioId))
             {
-                return Unauthorized(new { message = "Token inválido o negocio no asignado." });
+                return Unauthorized(new { message = "Token invÃ¡lido o negocio no asignado." });
             }
 
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.NegocioId == negocioId);
@@ -741,14 +741,14 @@ namespace VentifyAPI.Controllers
         }
 
         // GET: api/usuarios/{id}/permisos-extra
-        // Solo Dueño y Gerente pueden ver permisos extra de otros
+        // Solo DueÃ±o y Gerente pueden ver permisos extra de otros
         [HttpGet("{id:int}/permisos-extra")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> GetPermisosExtra(int id)
         {
             if (!TryGetUserAndNegocio(out var requester, out var negocioId))
             {
-                return Unauthorized(new { message = "Token inválido o negocio no asignado." });
+                return Unauthorized(new { message = "Token invÃ¡lido o negocio no asignado." });
             }
 
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Id == id && u.NegocioId == negocioId);
@@ -791,3 +791,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+

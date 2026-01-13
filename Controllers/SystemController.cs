@@ -28,7 +28,7 @@ namespace VentifyAPI.Controllers
         }
 
         // GET: api/system/session
-        // Devuelve información básica de sesión a partir del token (incluido vía cookie HttpOnly)
+        // Devuelve informaciÃ³n bÃ¡sica de sesiÃ³n a partir del token (incluido vÃ­a cookie HttpOnly)
         [Authorize]
         [HttpGet("session")]
         public async Task<IActionResult> GetSession()
@@ -89,3 +89,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+

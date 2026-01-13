@@ -5,7 +5,7 @@ using VentifyAPI.Models;
 
 namespace VentifyAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/puntos-venta")]
     [ApiController]
     public class PuntoDeVentaController : ControllerBase
     {
@@ -64,3 +64,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+

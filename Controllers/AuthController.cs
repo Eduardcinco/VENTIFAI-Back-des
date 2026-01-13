@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace VentifyAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
@@ -31,7 +31,7 @@ namespace VentifyAPI.Controllers
             var isDev = string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase);
             
             // En desarrollo: SameSite=Lax (localhost), Secure=false
-            // En producción (Railway): SameSite=None, Secure=true (HTTPS obligatorio)
+            // En producciÃ³n (Railway): SameSite=None, Secure=true (HTTPS obligatorio)
             // NO usar Domain en Railway - deja que el navegador maneje el dominio
             var opts = new CookieOptions
             {
@@ -51,7 +51,7 @@ namespace VentifyAPI.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] DTOs.RegistroUsuarioDTO usuarioDto)
         {
-            // Validación simple
+            // ValidaciÃ³n simple
             if (string.IsNullOrEmpty(usuarioDto.Nombre) ||
                 string.IsNullOrEmpty(usuarioDto.Correo) ||
                 string.IsNullOrEmpty(usuarioDto.Password))
@@ -65,22 +65,22 @@ namespace VentifyAPI.Controllers
 
             if (existe)
             {
-                return BadRequest(new { message = "El correo ya está registrado." });
+                return BadRequest(new { message = "El correo ya estÃ¡ registrado." });
             }
 
-            // 1) Crear usuario (dueño) sin negocio inicialmente
+            // 1) Crear usuario (dueÃ±o) sin negocio inicialmente
             var newUser = new Usuario
             {
                 Nombre = usuarioDto.Nombre,
                 Correo = usuarioDto.Correo,
                 Password = BCrypt.Net.BCrypt.HashPassword(usuarioDto.Password),
-                Rol = "dueño",
+                Rol = "dueÃ±o",
                 NegocioId = null
             };
             _context.Usuarios.Add(newUser);
             await _context.SaveChangesAsync();
 
-            // 2) Crear negocio del dueño y asociar OwnerId
+            // 2) Crear negocio del dueÃ±o y asociar OwnerId
             var negocio = new Negocio
             {
                 NombreNegocio = string.IsNullOrWhiteSpace(usuarioDto.Nombre) ? "Mi Negocio" : $"{usuarioDto.Nombre} - Negocio",
@@ -137,24 +137,24 @@ namespace VentifyAPI.Controllers
             {
                 return BadRequest(new { message = "Correo/Email y Password son requeridos." });
             }
-            // Buscar usuario - IGNORAR filtro de tenant porque aún no está autenticado
+            // Buscar usuario - IGNORAR filtro de tenant porque aÃºn no estÃ¡ autenticado
             var usuario = await _context.Usuarios
                 .IgnoreQueryFilters()
                 .FirstOrDefaultAsync(u => u.Correo == loginInfo.CorreoNormalizado);
 
             if (usuario == null)
             {
-                return Unauthorized(new { message = "Correo o contraseña incorrectos." });
+                return Unauthorized(new { message = "Correo o contraseÃ±a incorrectos." });
             }
 
-            // Comparar contraseña usando BCrypt
+            // Comparar contraseÃ±a usando BCrypt
             if (!BCrypt.Net.BCrypt.Verify(loginInfo.Password, usuario.Password))
             {
-                return Unauthorized(new { message = "Correo o contraseña incorrectos." });
+                return Unauthorized(new { message = "Correo o contraseÃ±a incorrectos." });
             }
 
-            // Auto-reparación: si es dueño y no tiene NegocioId, crear negocio ahora
-            if (string.Equals(usuario.Rol, "dueño", StringComparison.OrdinalIgnoreCase) && usuario.NegocioId == null)
+            // Auto-reparaciÃ³n: si es dueÃ±o y no tiene NegocioId, crear negocio ahora
+            if (string.Equals(usuario.Rol, "dueÃ±o", StringComparison.OrdinalIgnoreCase) && usuario.NegocioId == null)
             {
                 var fixNegocio = new Negocio
                 {
@@ -204,7 +204,7 @@ namespace VentifyAPI.Controllers
 
             return Ok(new
             {
-                message = "Inicio de sesión correcto.",
+                message = "Inicio de sesiÃ³n correcto.",
                 accessToken,
                 refreshToken,
                 expiresAt,
@@ -235,13 +235,13 @@ namespace VentifyAPI.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] DTOs.RefreshRequest req)
         {
-            _logger.LogInformation("🔄 REFRESH ENDPOINT CALLED");
+            _logger.LogInformation("ðŸ”„ REFRESH ENDPOINT CALLED");
             _logger.LogInformation("   Total cookies received: {CookieCount}", Request.Cookies.Count);
             
             foreach (var cookie in Request.Cookies)
             {
                 var display = cookie.Value.Length > 20 ? cookie.Value.Substring(0, 20) + "..." : cookie.Value;
-                _logger.LogInformation("   📥 Cookie: {Key} = {Value}", cookie.Key, display);
+                _logger.LogInformation("   ðŸ“¥ Cookie: {Key} = {Value}", cookie.Key, display);
             }
 
             // Permitir refresh usando cookie HttpOnly si no viene en body
@@ -257,7 +257,7 @@ namespace VentifyAPI.Controllers
 
             if (string.IsNullOrEmpty(incomingRt))
             {
-                _logger.LogWarning("❌ refreshToken es requerido pero no se encontró en body ni en cookies");
+                _logger.LogWarning("âŒ refreshToken es requerido pero no se encontrÃ³ en body ni en cookies");
                 return BadRequest(new { 
                     message = "refreshToken is required",
                     debug = new {
@@ -268,7 +268,7 @@ namespace VentifyAPI.Controllers
                 });
             }
 
-            _logger.LogInformation("✅ RefreshToken encontrado, buscando en DB...");
+            _logger.LogInformation("âœ… RefreshToken encontrado, buscando en DB...");
 
             var existing = await _context.RefreshTokens
                 .Include(rt => rt.Usuario)
@@ -276,30 +276,30 @@ namespace VentifyAPI.Controllers
 
             if (existing == null)
             {
-                _logger.LogWarning("❌ RefreshToken no encontrado en DB");
+                _logger.LogWarning("âŒ RefreshToken no encontrado en DB");
                 return Unauthorized(new { message = "Invalid or expired refresh token." });
             }
 
             if (existing.Revoked)
             {
-                _logger.LogWarning("❌ RefreshToken revocado");
+                _logger.LogWarning("âŒ RefreshToken revocado");
                 return Unauthorized(new { message = "Invalid or expired refresh token." });
             }
 
             if (existing.ExpiresAt < DateTime.UtcNow)
             {
-                _logger.LogWarning("❌ RefreshToken expirado. ExpiresAt: {ExpiresAt}, Now: {Now}", existing.ExpiresAt, DateTime.UtcNow);
+                _logger.LogWarning("âŒ RefreshToken expirado. ExpiresAt: {ExpiresAt}, Now: {Now}", existing.ExpiresAt, DateTime.UtcNow);
                 return Unauthorized(new { message = "Invalid or expired refresh token." });
             }
 
             var user = existing.Usuario;
             if (user == null)
             {
-                _logger.LogWarning("❌ Usuario asociado al RefreshToken no encontrado");
+                _logger.LogWarning("âŒ Usuario asociado al RefreshToken no encontrado");
                 return Unauthorized(new { message = "Usuario no encontrado para este refresh token." });
             }
 
-            _logger.LogInformation("✅ Validación exitosa. Generando nuevos tokens para usuarioId: {UserId}", user.Id);
+            _logger.LogInformation("âœ… ValidaciÃ³n exitosa. Generando nuevos tokens para usuarioId: {UserId}", user.Id);
 
             // create new tokens
             var (accessToken, newRefreshToken, expiresAt) = _tokenService.CreateTokens(user);
@@ -318,13 +318,13 @@ namespace VentifyAPI.Controllers
             _context.RefreshTokens.Add(newRt);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("✅ Nuevos tokens guardados. Actualizando cookies...");
+            _logger.LogInformation("âœ… Nuevos tokens guardados. Actualizando cookies...");
 
             // Actualizar cookies
             Response.Cookies.Append("access_token", accessToken, BuildCookieOptions(expiresAt));
             Response.Cookies.Append("refresh_token", newRefreshToken, BuildCookieOptions(expiresAt.AddDays(7)));
             
-            // Incluir datos mínimos del usuario para refrescar sesión/Sidebar (incluye fotoPerfilUrl)
+            // Incluir datos mÃ­nimos del usuario para refrescar sesiÃ³n/Sidebar (incluye fotoPerfilUrl)
             return Ok(new 
             { 
                 accessToken, 
@@ -352,15 +352,15 @@ namespace VentifyAPI.Controllers
             var opts = BuildCookieOptions(past);
             Response.Cookies.Append("access_token", string.Empty, opts);
             Response.Cookies.Append("refresh_token", string.Empty, opts);
-            return Ok(new { message = "Sesión cerrada" });
+            return Ok(new { message = "SesiÃ³n cerrada" });
         }
 
         // ================================
         //       CREAR EMPLEADO
         // POST: api/auth/empleado
-        // Solo Dueño y Gerente pueden crear empleados
+        // Solo DueÃ±o y Gerente pueden crear empleados
         // ================================
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         [HttpPost("empleado")]
         public async Task<IActionResult> CrearEmpleado([FromBody] DTOs.CrearEmpleadoDTO empleadoDto)
         {
@@ -372,19 +372,19 @@ namespace VentifyAPI.Controllers
                 return BadRequest(new { message = "Nombre, Apellido1 y Telefono son obligatorios." });
             }
 
-            // Validar teléfono (10 dígitos)
+            // Validar telÃ©fono (10 dÃ­gitos)
             if (empleadoDto.Telefono.Length != 10 || !empleadoDto.Telefono.All(char.IsDigit))
             {
-                return BadRequest(new { message = "Telefono debe tener exactamente 10 dígitos numéricos." });
+                return BadRequest(new { message = "Telefono debe tener exactamente 10 dÃ­gitos numÃ©ricos." });
             }
 
             // Validar RFC si se proporciona
             if (!string.IsNullOrWhiteSpace(empleadoDto.RFC))
             {
-                var rfcPattern = @"^[A-ZÑ&]{4}\d{6}[A-Z0-9]{3}$";
+                var rfcPattern = @"^[A-ZÃ‘&]{4}\d{6}[A-Z0-9]{3}$";
                 if (!System.Text.RegularExpressions.Regex.IsMatch(empleadoDto.RFC.ToUpper(), rfcPattern))
                 {
-                    return BadRequest(new { message = "RFC inválido. Debe tener el formato correcto (ej: PEPJ900101H02)." });
+                    return BadRequest(new { message = "RFC invÃ¡lido. Debe tener el formato correcto (ej: PEPJ900101H02)." });
                 }
             }
 
@@ -398,17 +398,17 @@ namespace VentifyAPI.Controllers
             var dueno = await _context.Usuarios.FindAsync(duenoId);
             if (dueno == null || dueno.NegocioId == null)
             {
-                return BadRequest(new { message = "El dueño no tiene un negocio asignado." });
+                return BadRequest(new { message = "El dueÃ±o no tiene un negocio asignado." });
             }
 
-            // Generar correo y contraseña automáticos
+            // Generar correo y contraseÃ±a automÃ¡ticos
             var correoBase = $"{empleadoDto.Apellido1.ToLower()}";
             if (!string.IsNullOrWhiteSpace(empleadoDto.Apellido2))
             {
                 correoBase += $".{empleadoDto.Apellido2.ToLower()}";
             }
             
-            // Asegurar que el correo sea único
+            // Asegurar que el correo sea Ãºnico
             var correo = $"{correoBase}@negocio{dueno.NegocioId}.local";
             int contador = 1;
             while (await _context.Usuarios.AnyAsync(u => u.Correo == correo))
@@ -417,7 +417,7 @@ namespace VentifyAPI.Controllers
                 contador++;
             }
 
-            // Generar contraseña aleatoria (8 caracteres)
+            // Generar contraseÃ±a aleatoria (8 caracteres)
             var password = GenerateRandomPassword(8);
 
             // Crear empleado
@@ -436,7 +436,7 @@ namespace VentifyAPI.Controllers
                 Password = BCrypt.Net.BCrypt.HashPassword(password),
                 Rol = "empleado",
                 NegocioId = dueno.NegocioId,
-                PrimerAcceso = true // OBLIGAR cambio de contraseña en primer login
+                PrimerAcceso = true // OBLIGAR cambio de contraseÃ±a en primer login
             };
 
             _context.Usuarios.Add(empleado);
@@ -460,7 +460,7 @@ namespace VentifyAPI.Controllers
                 credenciales = new
                 {
                     correo,
-                    password // Devolver la contraseña generada al dueño (solo esta vez)
+                    password // Devolver la contraseÃ±a generada al dueÃ±o (solo esta vez)
                 }
             });
         }
@@ -529,7 +529,7 @@ namespace VentifyAPI.Controllers
         }
 
         // ================================
-        //       PRIMER ACCESO - CAMBIO OBLIGATORIO DE CONTRASEÑA
+        //       PRIMER ACCESO - CAMBIO OBLIGATORIO DE CONTRASEÃ‘A
         // PUT: api/auth/primer-acceso
         // ================================
         [Authorize]
@@ -546,21 +546,21 @@ namespace VentifyAPI.Controllers
             // Validar que tenga primer acceso activo
             if (!usuario.PrimerAcceso)
             {
-                return BadRequest(new { message = "Este usuario ya completó su primer acceso." });
+                return BadRequest(new { message = "Este usuario ya completÃ³ su primer acceso." });
             }
 
-            // Validar nueva contraseña
+            // Validar nueva contraseÃ±a
             if (string.IsNullOrWhiteSpace(dto.NuevaPassword) || dto.NuevaPassword.Length < 6)
             {
-                return BadRequest(new { message = "La nueva contraseña debe tener al menos 6 caracteres." });
+                return BadRequest(new { message = "La nueva contraseÃ±a debe tener al menos 6 caracteres." });
             }
 
-            // Actualizar contraseña y desactivar flag de primer acceso
+            // Actualizar contraseÃ±a y desactivar flag de primer acceso
             usuario.Password = BCrypt.Net.BCrypt.HashPassword(dto.NuevaPassword);
             usuario.PrimerAcceso = false;
             await _context.SaveChangesAsync();
 
-            return Ok(new { success = true, message = "Contraseña actualizada. Ahora puedes acceder al sistema." });
+            return Ok(new { success = true, message = "ContraseÃ±a actualizada. Ahora puedes acceder al sistema." });
         }
 
         private static string GenerateRandomPassword(int length)
@@ -572,4 +572,5 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+
 

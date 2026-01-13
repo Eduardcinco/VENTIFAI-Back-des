@@ -8,7 +8,7 @@ using VentifyAPI.Services;
 
 namespace VentifyAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/producto")]
     [ApiController]
     [Authorize]
     public class ProductoController : ControllerBase
@@ -25,9 +25,9 @@ namespace VentifyAPI.Controllers
         }
 
         // POST: api/producto/{id}/reabastecer  -> reabastecer stock con nueva compra
-        // Solo Dueño, Gerente y Almacenista pueden reabastecer
+        // Solo DueÃ±o, Gerente y Almacenista pueden reabastecer
         [HttpPost("{id}/reabastecer")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente,almacenista,Almacenista")]
+        [Authorize(Roles = "dueÃ±o,gerente,almacenista")]
         public async Task<IActionResult> ReabastecerProducto(int id, [FromBody] DTOs.ReabastecerProductoDTO dto)
         {
             if (!_tenant.UserId.HasValue) return Unauthorized();
@@ -64,12 +64,12 @@ namespace VentifyAPI.Controllers
                 fieldErrors["merma"] = "La merma no puede ser negativa ni mayor a la cantidad comprada.";
 
             if (dto.StockMinimo.HasValue && dto.StockMinimo < 0)
-                fieldErrors["stockMinimo"] = "El stock mínimo no puede ser negativo.";
+                fieldErrors["stockMinimo"] = "El stock mÃ­nimo no puede ser negativo.";
 
             if (fieldErrors.Count > 0)
                 return BadRequest(new { title = "Validation Failed", fieldErrors });
 
-            // Guardar valores anteriores para auditoría
+            // Guardar valores anteriores para auditorÃ­a
             var stockAntes = producto.StockActual;
             var mermaAntes = producto.Merma;
             var precioCompraAntes = producto.PrecioCompra;
@@ -95,7 +95,7 @@ namespace VentifyAPI.Controllers
             // Actualizar cantidad inicial (representa el total que ha entrado)
             producto.CantidadInicial += dto.CantidadComprada;
             
-            // Actualizar stock mínimo si se proporciona
+            // Actualizar stock mÃ­nimo si se proporciona
             if (dto.StockMinimo.HasValue)
                 producto.StockMinimo = dto.StockMinimo.Value;
             
@@ -139,10 +139,10 @@ namespace VentifyAPI.Controllers
             });
         }
 
-        // POST: api/producto/{id}/merma  -> agrega merma con auditoría
-        // Solo Dueño, Gerente y Almacenista pueden registrar merma
+        // POST: api/producto/{id}/merma  -> agrega merma con auditorÃ­a
+        // Solo DueÃ±o, Gerente y Almacenista pueden registrar merma
         [HttpPost("{id}/merma")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente,almacenista,Almacenista")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,almacenista,Almacenista")]
         public async Task<IActionResult> AddMerma(int id, [FromBody] DTOs.MermaRequestDTO body)
         {
             if (!_tenant.UserId.HasValue) return Unauthorized();
@@ -160,7 +160,7 @@ namespace VentifyAPI.Controllers
             else if (incremento <= 0)
                 fieldErrors["incremento"] = "Debe ser mayor a 0.";
             if (fieldErrors.Count > 0)
-                return BadRequest(new { message = "Errores de validación", fieldErrors });
+                return BadRequest(new { message = "Errores de validaciÃ³n", fieldErrors });
 
             var producto = await _context.Productos.FirstOrDefaultAsync(p => p.Id == id && p.NegocioId == negocioId);
             if (producto == null) return NotFound(new { message = "Producto no encontrado en tu negocio." });
@@ -326,7 +326,7 @@ namespace VentifyAPI.Controllers
                 producto.CategoryId,
                 category = producto.Category == null ? null : new { id = producto.Category.Id, name = producto.Category.Name },
                 variantes = producto.Variantes.Select(v => new { v.Id, v.Nombre, v.Precio, v.Stock }).ToList(),
-                // Info adicional del descuento para administración
+                // Info adicional del descuento para administraciÃ³n
                 descuentoInfo = descuentoActivo ? new {
                     porcentaje = producto.DescuentoPorcentaje,
                     fechaInicio = producto.DescuentoFechaInicio,
@@ -339,9 +339,9 @@ namespace VentifyAPI.Controllers
         }
 
         // POST: api/producto
-        // Solo Dueño, Gerente y Almacenista pueden crear productos
+        // Solo DueÃ±o, Gerente y Almacenista pueden crear productos
         [HttpPost]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente,almacenista,Almacenista")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,almacenista,Almacenista")]
         public async Task<IActionResult> Create([FromBody] Producto producto)
         {
             var fieldErrors = new Dictionary<string, string>();
@@ -351,26 +351,26 @@ namespace VentifyAPI.Controllers
                 fieldErrors["precioVenta"] = "El precio de venta debe ser mayor a 0.";
             if (producto.PrecioCompra < 0)
                 fieldErrors["precioCompra"] = "El precio de compra no puede ser negativo.";
-            // Validación de negocio: precio venta > precio compra
+            // ValidaciÃ³n de negocio: precio venta > precio compra
             if (producto.PrecioVenta > 0 && producto.PrecioCompra > 0 && producto.PrecioVenta <= producto.PrecioCompra)
                 fieldErrors["precioVenta"] = "El precio de venta debe ser mayor al precio de compra para tener ganancia.";
             if (producto.CantidadInicial < 0)
                 fieldErrors["cantidadInicial"] = "La cantidad inicial no puede ser negativa.";
             if (producto.Merma < 0)
                 fieldErrors["merma"] = "La merma no puede ser negativa.";
-            // Validación: merma no puede exceder cantidad inicial
+            // ValidaciÃ³n: merma no puede exceder cantidad inicial
             if (producto.CantidadInicial >= 0 && producto.Merma > producto.CantidadInicial)
                 fieldErrors["merma"] = $"La merma ({producto.Merma}) no puede ser mayor a la cantidad inicial ({producto.CantidadInicial}).";
             if (producto.StockActual < 0)
                 fieldErrors["stockActual"] = "El stock actual no puede ser negativo.";
             if (producto.StockMinimo < 0)
-                fieldErrors["stockMinimo"] = "El stock mínimo no puede ser negativo.";
+                fieldErrors["stockMinimo"] = "El stock mÃ­nimo no puede ser negativo.";
             if (fieldErrors.Count > 0)
                 return BadRequest(new { title = "Validation Failed", fieldErrors });
             if (!_tenant.UserId.HasValue) return Unauthorized();
             var userId = _tenant.UserId.Value;
 
-            // Resolver categoría automáticamente:
+            // Resolver categorÃ­a automÃ¡ticamente:
             // - Si viene CategoryId, validar que pertenece al usuario
             // - Si no viene, intentar por nombre 'Categoria'; si no existe, crear
             // - Si no hay nombre, usar o crear "General"
@@ -383,7 +383,7 @@ namespace VentifyAPI.Controllers
                     .AnyAsync(c => c.Id == producto.CategoryId && c.Usuario != null && c.Usuario.NegocioId == negocioId);
                 if (!catOk)
                 {
-                    // Fallback tolerante: ignorar CategoryId inválido y resolver por nombre o General
+                    // Fallback tolerante: ignorar CategoryId invÃ¡lido y resolver por nombre o General
                     producto.CategoryId = null;
                 }
             }
@@ -419,7 +419,7 @@ namespace VentifyAPI.Controllers
             }
 
             producto.UsuarioId = userId;
-            // SIEMPRE calcular stock inicial automáticamente: CantidadInicial - Merma
+            // SIEMPRE calcular stock inicial automÃ¡ticamente: CantidadInicial - Merma
             // Ignorar lo que venga del frontend para evitar inconsistencias
             var stockCalculado = (producto.CantidadInicial >= 0 ? producto.CantidadInicial : 0)
                                 - (producto.Merma >= 0 ? producto.Merma : 0);
@@ -449,20 +449,20 @@ namespace VentifyAPI.Controllers
                 fieldErrors["precioVenta"] = "El precio de venta debe ser mayor a 0.";
             if (producto.PrecioCompra < 0)
                 fieldErrors["precioCompra"] = "El precio de compra no puede ser negativo.";
-            // Validación de negocio: precio venta > precio compra
+            // ValidaciÃ³n de negocio: precio venta > precio compra
             if (producto.PrecioVenta > 0 && producto.PrecioCompra > 0 && producto.PrecioVenta <= producto.PrecioCompra)
                 fieldErrors["precioVenta"] = "El precio de venta debe ser mayor al precio de compra para tener ganancia.";
             if (producto.CantidadInicial < 0)
                 fieldErrors["cantidadInicial"] = "La cantidad inicial no puede ser negativa.";
             if (producto.Merma < 0)
                 fieldErrors["merma"] = "La merma no puede ser negativa.";
-            // Validación: merma no puede exceder cantidad inicial (validar contra nuevo valor enviado)
+            // ValidaciÃ³n: merma no puede exceder cantidad inicial (validar contra nuevo valor enviado)
             if (producto.CantidadInicial >= 0 && producto.Merma > producto.CantidadInicial)
                 fieldErrors["merma"] = $"La merma ({producto.Merma}) no puede ser mayor a la cantidad inicial ({producto.CantidadInicial}).";
             if (producto.StockActual < 0)
                 fieldErrors["stockActual"] = "El stock actual no puede ser negativo.";
             if (producto.StockMinimo < 0)
-                fieldErrors["stockMinimo"] = "El stock mínimo no puede ser negativo.";
+                fieldErrors["stockMinimo"] = "El stock mÃ­nimo no puede ser negativo.";
             if (fieldErrors.Count > 0)
                 return BadRequest(new { title = "Validation Failed", fieldErrors });
 
@@ -482,7 +482,7 @@ namespace VentifyAPI.Controllers
             existing.PrecioVenta = producto.PrecioVenta;
             existing.Categoria = producto.Categoria;
             existing.Subcategoria = producto.Subcategoria;
-            // Resolver/validar categoría en updates
+            // Resolver/validar categorÃ­a en updates
             // Obtener negocioId desde el producto/tenant
             var negocioId = existing.NegocioId;
             if (producto.CategoryId != null)
@@ -495,7 +495,7 @@ namespace VentifyAPI.Controllers
                 }
                 else
                 {
-                    // Fallback tolerante: ignorar CategoryId inválido y resolver por nombre o General
+                    // Fallback tolerante: ignorar CategoryId invÃ¡lido y resolver por nombre o General
                     producto.CategoryId = null;
                 }
             }
@@ -530,7 +530,7 @@ namespace VentifyAPI.Controllers
                 existing.CategoryId = categoryId;
             }
             existing.CantidadInicial = producto.CantidadInicial;
-            // Aplicar delta de merma automáticamente si aumenta y el stock no fue editado manualmente
+            // Aplicar delta de merma automÃ¡ticamente si aumenta y el stock no fue editado manualmente
             var mermaAnterior = existing.Merma;
             var mermaNueva = producto.Merma;
             existing.Merma = mermaNueva;
@@ -543,10 +543,10 @@ namespace VentifyAPI.Controllers
                 existing.StockActual = existing.StockActual - delta;
             }
             // Recalcular stock solo si CantidadInicial o Merma cambiaron
-            // Si el usuario editó StockActual manualmente (por ajuste de inventario), respetarlo
+            // Si el usuario editÃ³ StockActual manualmente (por ajuste de inventario), respetarlo
             if (producto.StockActual >= 0 && producto.StockActual != existing.StockActual)
             {
-                // Usuario editó stock manualmente
+                // Usuario editÃ³ stock manualmente
                 existing.StockActual = producto.StockActual;
             }
             // Si no vino stock o es el mismo, mantener el actual (no recalcular, se actualiza con ventas)
@@ -561,9 +561,9 @@ namespace VentifyAPI.Controllers
         }
 
         // DELETE: api/producto/{id}  -> soft-delete
-        // Solo Dueño y Gerente pueden eliminar productos
+        // Solo DueÃ±o y Gerente pueden eliminar productos
         [HttpDelete("{id}")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> Delete(int id)
         {
             if (!_tenant.UserId.HasValue) return Unauthorized();
@@ -612,9 +612,9 @@ namespace VentifyAPI.Controllers
             return Ok(new { producto.Id, producto.Nombre, producto.Activo });
         }
 
-        // PUT: api/producto/{id}/descuento  -> aplicar descuento (solo dueño/gerente)
+        // PUT: api/producto/{id}/descuento  -> aplicar descuento (solo dueÃ±o/gerente)
         [HttpPut("{id}/descuento")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> AplicarDescuento(int id, [FromBody] DTOs.AplicarDescuentoDTO dto)
         {
             if (!_tenant.UserId.HasValue) return Unauthorized();
@@ -679,3 +679,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+

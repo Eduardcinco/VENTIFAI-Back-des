@@ -8,7 +8,7 @@ using VentifyAPI.Models;
 
 namespace VentifyAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/negocio")]
     [ApiController]
     public class NegocioController : ControllerBase
     {
@@ -55,10 +55,10 @@ namespace VentifyAPI.Controllers
         }
 
         // PUT: api/negocio/perfil
-        // Solo el Dueño puede cambiar el nombre del negocio
+        // Solo el DueÃ±o puede cambiar el nombre del negocio
         // El Gerente puede actualizar otros campos pero NO el nombre
         [HttpPut("perfil")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> UpdatePerfil([FromBody] NegocioPerfilDTO dto)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -77,11 +77,11 @@ namespace VentifyAPI.Controllers
             if (negocio == null)
                 return NotFound(new { message = "Negocio no encontrado." });
 
-            // Solo el dueño puede cambiar el nombre del negocio
-            var esDueno = usuario.Rol?.ToLower() == "dueño" || usuario.Rol?.ToLower() == "dueno";
+            // Solo el dueÃ±o puede cambiar el nombre del negocio
+            var esDueno = usuario.Rol?.ToLower() == "dueÃ±o" || usuario.Rol?.ToLower() == "dueno";
             if (!esDueno && dto.NombreNegocio != negocio.NombreNegocio)
             {
-                return Forbid(); // Gerente intentó cambiar el nombre
+                return Forbid(); // Gerente intentÃ³ cambiar el nombre
             }
 
             // Actualizar campos
@@ -133,9 +133,9 @@ namespace VentifyAPI.Controllers
         }
 
         // POST: api/negocio/branding
-        // Dueño y Gerente pueden actualizar branding
+        // DueÃ±o y Gerente pueden actualizar branding
         [HttpPost("branding")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> UpdateBranding([FromBody] DTOs.BrandingDTO dto)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -194,7 +194,7 @@ namespace VentifyAPI.Controllers
             if (string.IsNullOrWhiteSpace(negocio.NombreNegocio))
                 return BadRequest(new { message = "El nombre del negocio es obligatorio." });
 
-            // Puedes agregar más validaciones aquí (unicidad, etc.)
+            // Puedes agregar mÃ¡s validaciones aquÃ­ (unicidad, etc.)
 
             _context.Negocios.Add(negocio);
             await _context.SaveChangesAsync();
@@ -229,3 +229,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+

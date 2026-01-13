@@ -5,7 +5,7 @@ using VentifyAPI.Models;
 
 namespace VentifyAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/variantes-producto")]
     [ApiController]
     public class VarianteProductoController : ControllerBase
     {
@@ -64,3 +64,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+

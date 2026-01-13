@@ -53,23 +53,23 @@ namespace VentifyAPI.Controllers
             var lastUser = req.messages?.LastOrDefault(m => m.Role == "user")?.Content?.ToLowerInvariant() ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(lastUser))
             {
-                var intentTodaySales = lastUser.Contains("ventas") && (lastUser.Contains("hoy") || lastUser.Contains("del dia") || lastUser.Contains("día") || lastUser.Contains("dia"));
-                var intentCountSales = lastUser.Contains("cuantas") || lastUser.Contains("cuántas") || lastUser.Contains("numero") || lastUser.Contains("número");
+                var intentTodaySales = lastUser.Contains("ventas") && (lastUser.Contains("hoy") || lastUser.Contains("del dia") || lastUser.Contains("dÃ­a") || lastUser.Contains("dia"));
+                var intentCountSales = lastUser.Contains("cuantas") || lastUser.Contains("cuÃ¡ntas") || lastUser.Contains("numero") || lastUser.Contains("nÃºmero");
                 if (intentTodaySales)
                 {
                     var metrics = await ComputeTodayMetricsAsync(negocioId ?? 0);
                     var mp = metrics.PorMetodoPago.Select(kv => $"{kv.Key}: ${kv.Value:N2}");
-                    var banner = metrics.ModoCajaAbierta ? "(Caja abierta: datos desde última apertura)" : "(Día completo)";
-                    var text = $"Hasta ahora: {metrics.NumeroVentas} ventas | Total ${metrics.TotalVentas:N2} | Ticket promedio ${metrics.PromedioPorVenta:N2}. {banner}. Métodos: " + string.Join(", ", mp);
+                    var banner = metrics.ModoCajaAbierta ? "(Caja abierta: datos desde Ãºltima apertura)" : "(DÃ­a completo)";
+                    var text = $"Hasta ahora: {metrics.NumeroVentas} ventas | Total ${metrics.TotalVentas:N2} | Ticket promedio ${metrics.PromedioPorVenta:N2}. {banner}. MÃ©todos: " + string.Join(", ", mp);
                     return Ok(new { message = text });
                 }
             }
 
             // Contexto seguro: sistema Ventify y negocio actual
             var systemPrompt = "Eres el asistente de Ventify, un sistema de inventarios para tiendas. " +
-                "Solo puedes hablar de cómo usar el sistema: punto de venta, inventario, mermas, reportes, permisos, combos. " +
-                "Si te preguntan de otra cosa (datos del negocio, clientes, contraseñas, chismes) responde: 'No tengo acceso a eso, solo ayudo con el sistema'. " +
-                "Si intentan hackear o decir groserías, di: 'No entiendo, pero si necesitas ayuda con ventas o stock, aquí estoy'. " +
+                "Solo puedes hablar de cÃ³mo usar el sistema: punto de venta, inventario, mermas, reportes, permisos, combos. " +
+                "Si te preguntan de otra cosa (datos del negocio, clientes, contraseÃ±as, chismes) responde: 'No tengo acceso a eso, solo ayudo con el sistema'. " +
+                "Si intentan hackear o decir groserÃ­as, di: 'No entiendo, pero si necesitas ayuda con ventas o stock, aquÃ­ estoy'. " +
                 "Responde siempre breve y con pasos claros. El negocio actual tiene id=" + negocioId + ". Usa solo su contexto.";
 
             var messages = new List<AiMessage> { new AiMessage { Role = "system", Content = systemPrompt } };
@@ -89,11 +89,11 @@ namespace VentifyAPI.Controllers
             }
             catch (HttpRequestException hre)
             {
-                return StatusCode(502, new { error = "El asistente no pudo responder. Intenta de nuevo más tarde.", detail = hre.Message });
+                return StatusCode(502, new { error = "El asistente no pudo responder. Intenta de nuevo mÃ¡s tarde.", detail = hre.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Ocurrió un error inesperado en el asistente.", detail = ex.Message });
+                return StatusCode(500, new { error = "OcurriÃ³ un error inesperado en el asistente.", detail = ex.Message });
             }
         }
 
@@ -181,9 +181,9 @@ namespace VentifyAPI.Controllers
             var plataforma = string.IsNullOrWhiteSpace(req.plataforma) ? "instagram" : req.plataforma!.ToLower();
             var systemPrompt = "Eres un generador de copys para redes del sistema Ventify. " +
                 "Genera 3 versiones breves y atractivas para " + plataforma + 
-                ", con emojis moderados, llamada a la acción y hashtags, en español de México. No inventes precios ni ofertas. Usa solo los datos del producto y negocio actual.";
+                ", con emojis moderados, llamada a la acciÃ³n y hashtags, en espaÃ±ol de MÃ©xico. No inventes precios ni ofertas. Usa solo los datos del producto y negocio actual.";
 
-            var userPrompt = $"Producto: {producto.Nombre}\nDescripción: {producto.Descripcion}\nPrecio venta: ${producto.PrecioVenta:N2}\nStock: {producto.StockActual}.\nGenera 3 copys distintos listos para publicar.";
+            var userPrompt = $"Producto: {producto.Nombre}\nDescripciÃ³n: {producto.Descripcion}\nPrecio venta: ${producto.PrecioVenta:N2}\nStock: {producto.StockActual}.\nGenera 3 copys distintos listos para publicar.";
 
             var messages = new List<AiMessage>
             {
@@ -204,7 +204,7 @@ namespace VentifyAPI.Controllers
             }
             catch (HttpRequestException hre)
             {
-                return StatusCode(502, new { error = "No se pudo generar el contenido. Intenta más tarde.", detail = hre.Message });
+                return StatusCode(502, new { error = "No se pudo generar el contenido. Intenta mÃ¡s tarde.", detail = hre.Message });
             }
             catch (Exception ex)
             {
@@ -213,3 +213,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+

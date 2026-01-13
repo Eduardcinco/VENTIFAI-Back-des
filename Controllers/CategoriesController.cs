@@ -95,7 +95,7 @@ namespace VentifyAPI.Controllers
             var hasChildren = await _db.Categories.AnyAsync(c => c.ParentId == id && c.UsuarioId == userId);
             if (hasChildren)
             {
-                return Conflict(new { message = "No se puede eliminar la categoría porque tiene subcategorías. Elimine o reasigne las subcategorías primero." });
+                return Conflict(new { message = "No se puede eliminar la categorÃ­a porque tiene subcategorÃ­as. Elimine o reasigne las subcategorÃ­as primero." });
             }
 
             _db.Categories.Remove(cat);
@@ -104,3 +104,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+

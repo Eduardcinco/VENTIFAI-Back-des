@@ -95,7 +95,7 @@ namespace VentifyAPI.Controllers
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
             var userId = int.Parse(userIdStr);
 
-            // Cerrar caja únicamente dentro del mismo negocio del usuario
+            // Cerrar caja Ãºnicamente dentro del mismo negocio del usuario
             var negocioIdNullable = await _context.Usuarios
                 .Where(u => u.Id == userId)
                 .Select(u => u.NegocioId)
@@ -115,7 +115,7 @@ namespace VentifyAPI.Controllers
             if (montoCierre < 0)
                 return BadRequest(new { message = "El monto de cierre no puede ser negativo." });
 
-            // Generar resumen automático de ventas del día (filtrar por negocio y rango de fecha)
+            // Generar resumen automÃ¡tico de ventas del dÃ­a (filtrar por negocio y rango de fecha)
             var ventasDelDia = await _context.Ventas
                 .Where(v => v.NegocioId == negocioId && v.FechaHora >= caja.FechaApertura && v.FechaHora <= DateTime.UtcNow)
                 .ToListAsync();
@@ -128,7 +128,7 @@ namespace VentifyAPI.Controllers
             caja.MontoCierre = montoCierre;
             caja.ResumenCierre = resumenFinal;
             caja.FechaCierre = DateTime.UtcNow;
-            caja.UsuarioCierreId = userId;  // Auditoría: quién cerró
+            caja.UsuarioCierreId = userId;  // AuditorÃ­a: quiÃ©n cerrÃ³
             caja.Abierta = false;
             await _context.SaveChangesAsync();
             return Ok(new { abierta = false, caja });
@@ -165,7 +165,7 @@ namespace VentifyAPI.Controllers
                 : caja.MontoActual - dto.Monto;
 
             if (nuevoSaldo < 0)
-                return BadRequest(new { message = "Saldo insuficiente en caja. No se puede retirar más de lo disponible." });
+                return BadRequest(new { message = "Saldo insuficiente en caja. No se puede retirar mÃ¡s de lo disponible." });
 
             // Crear movimiento
             var movimiento = new MovimientoCaja
@@ -256,7 +256,7 @@ namespace VentifyAPI.Controllers
             });
         }
 
-        // GET: api/caja/resumen -> resumen de movimientos por categoría
+        // GET: api/caja/resumen -> resumen de movimientos por categorÃ­a
         [HttpGet("resumen")]
         public async Task<IActionResult> GetResumen()
         {
@@ -305,3 +305,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+

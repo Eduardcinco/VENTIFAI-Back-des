@@ -8,9 +8,9 @@ using VentifyAPI.Services;
 
 namespace VentifyAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/reportes")]
     [ApiController]
-    [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+    [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
     public class ReportesController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -85,8 +85,8 @@ namespace VentifyAPI.Controllers
             var negocio = await _context.Negocios.FindAsync(negocioId);
             var nombreNegocio = negocio?.NombreNegocio ?? "Negocio";
 
-            // Rango inclusivo por día: [inicio 00:00, fin 24:00)
-            // Si hay caja abierta, usar ventana desde última apertura hasta ahora (flujo real de POS)
+            // Rango inclusivo por dÃ­a: [inicio 00:00, fin 24:00)
+            // Si hay caja abierta, usar ventana desde Ãºltima apertura hasta ahora (flujo real de POS)
             DateTime inicio;
             DateTime fin;
             var cajaAbierta = await _context.Cajas
@@ -101,7 +101,7 @@ namespace VentifyAPI.Controllers
             }
             else
             {
-                // Rango inclusivo por día: [inicio 00:00, fin 24:00)
+                // Rango inclusivo por dÃ­a: [inicio 00:00, fin 24:00)
                 inicio = filtro.FechaInicio.Date;
                 fin = filtro.FechaFin.Date.AddDays(1);
             }
@@ -239,7 +239,7 @@ namespace VentifyAPI.Controllers
 
             var productos = await query.OrderByDescending(p => p.CantidadVendida).Take(20).ToListAsync();
 
-            // Obtener nombres de categorías
+            // Obtener nombres de categorÃ­as
             var categoriaIds = productos.Where(p => p.CategoriaId.HasValue).Select(p => p.CategoriaId!.Value).Distinct().ToList();
             var categorias = await _context.Categories.Where(c => categoriaIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, c => c.Name);
 
@@ -302,3 +302,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+

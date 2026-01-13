@@ -25,7 +25,7 @@ namespace VentifyAPI.Controllers
         }
 
         // GET: api/ventas/mis-ventas?fecha=YYYY-MM-DD
-        // Para cajeros: solo sus ventas del día
+        // Para cajeros: solo sus ventas del dÃ­a
         [HttpGet("mis-ventas")]
         public async Task<IActionResult> GetMisVentas([FromQuery] string? fecha = null)
         {
@@ -57,9 +57,9 @@ namespace VentifyAPI.Controllers
         }
 
         // GET: api/ventas?from=YYYY-MM-DD&to=YYYY-MM-DD
-        // Solo Dueño y Gerente pueden ver todas las ventas
+        // Solo DueÃ±o y Gerente pueden ver todas las ventas
         [HttpGet]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> GetAll([FromQuery] string? from = null, [FromQuery] string? to = null)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -143,7 +143,7 @@ namespace VentifyAPI.Controllers
             {
                 var prod = await _context.Productos.FirstOrDefaultAsync(p => p.Id == it.ProductoId);
                 if (prod == null) return BadRequest(new { message = $"Producto {it.ProductoId} no encontrado." });
-                if (!prod.Activo) return BadRequest(new { message = $"Producto {prod.Nombre} no está activo." });
+                if (!prod.Activo) return BadRequest(new { message = $"Producto {prod.Nombre} no estÃ¡ activo." });
                 if (prod.StockActual < it.Cantidad) return BadRequest(new { message = $"Stock insuficiente para producto {prod.Nombre}. Disponible: {prod.StockActual}" });
             }
 
@@ -243,9 +243,9 @@ namespace VentifyAPI.Controllers
         }
 
         // DELETE: api/ventas/{id}
-        // Solo Dueño y Gerente pueden eliminar ventas
+        // Solo DueÃ±o y Gerente pueden eliminar ventas
         [HttpDelete("{id}")]
-        [Authorize(Roles = "dueño,Dueño,Dueno,gerente,Gerente")]
+        [Authorize(Roles = "dueÃ±o,DueÃ±o,Dueno,gerente,Gerente")]
         public async Task<IActionResult> Delete(int id)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -278,7 +278,7 @@ namespace VentifyAPI.Controllers
             {
                 cajaAbierta.MontoActual -= venta.TotalPagado;
 
-                // Registrar movimiento de salida por cancelación de venta
+                // Registrar movimiento de salida por cancelaciÃ³n de venta
                 var movimientoCancelacion = new MovimientoCaja
                 {
                     CajaId = cajaAbierta.Id,
@@ -286,8 +286,8 @@ namespace VentifyAPI.Controllers
                     UsuarioId = userId,
                     Tipo = "salida",
                     Monto = venta.TotalPagado,
-                    Categoria = "Cancelación de Venta",
-                    Descripcion = $"Cancelación de venta #{venta.Id}",
+                    Categoria = "CancelaciÃ³n de Venta",
+                    Descripcion = $"CancelaciÃ³n de venta #{venta.Id}",
                     MetodoPago = venta.FormaPago,
                     FechaHora = DateTime.UtcNow,
                     SaldoDespues = cajaAbierta.MontoActual,
@@ -302,3 +302,4 @@ namespace VentifyAPI.Controllers
         }
     }
 }
+
