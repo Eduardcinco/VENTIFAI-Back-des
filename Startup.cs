@@ -141,7 +141,12 @@ namespace VentifyAPI
             app.UseMiddleware<VentifyAPI.Middleware.CorsDebugMiddleware>();
 
             app.UseRouting();
-                app.UseCors("AllowVentifive"); // CORS debe ir antes de auth
+            app.Use(async (context, next) =>
+            {
+                Console.WriteLine($"Origen recibido: {context.Request.Headers["Origin"]}");
+                await next();
+            });
+            app.UseCors("AllowVentifive"); // CORS debe ir antes de auth
             app.UseCookiePolicy();
             app.UseAuthentication();
             app.UseAuthorization();
