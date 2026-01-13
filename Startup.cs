@@ -138,6 +138,8 @@ namespace VentifyAPI
             // Debug middleware para loguear cookies (SOLO en Development)
             if (env.IsDevelopment())
                 app.UseMiddleware<VentifyAPI.Middleware.CookieDebugMiddleware>();
+            // Loguear origen de cada petición para depurar CORS
+            app.UseMiddleware<VentifyAPI.Middleware.CorsDebugMiddleware>();
 
             app.UseRouting();
             app.UseCors("AllowNetlify"); // CORS debe ir antes de auth
