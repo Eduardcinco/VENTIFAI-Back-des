@@ -6,6 +6,7 @@ namespace VentifyAPI
 {
     public class Program
     {
+        // Build version: 2025-01-13 - Redeploy con rutas normalizadas
         public static void Main(string[] args)
         {
             CreateHostBuilder(args).Build().Run();
