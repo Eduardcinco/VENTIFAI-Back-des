@@ -104,15 +104,14 @@ namespace VentifyAPI
             // ============================================================
             services.AddCors(options =>
             {
-                options.AddPolicy("CorsPolicy", builder =>
+                options.AddPolicy("AllowFrontend", builder =>
                     builder.WithOrigins(
                         "http://localhost:4200",
-                        "https://phenomenal-strudel-befb4f.netlify.app"
+                        "https://ventifive.netlify.app"
                     )
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials()
-                    .WithExposedHeaders("Content-Disposition", "X-Pagination")
                 );
             });
             services.AddCookiePolicy(options =>
