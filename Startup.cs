@@ -54,11 +54,13 @@ namespace VentifyAPI
             // 3. JWT
             // ============================================================
             var jwtSecret =
-                Configuration["Jwt:Secret"]
+                Configuration["Jwt:Key"]
+                ?? Configuration["Jwt:Secret"]
+                ?? Environment.GetEnvironmentVariable("Jwt__Key")
                 ?? Environment.GetEnvironmentVariable("Jwt__Secret");
 
             if (string.IsNullOrWhiteSpace(jwtSecret))
-                throw new Exception("❌ JWT secret NOT configured.");
+                throw new Exception("❌ JWT secret/key NOT configured in appsettings or environment variables.");
 
             var key = Encoding.ASCII.GetBytes(jwtSecret);
 
