@@ -102,22 +102,19 @@ namespace VentifyAPI
             // ============================================================
             // 5. CORS (CRITICAL: AllowCredentials + WithOrigins, no AllowAnyOrigin)
             // ============================================================
-                services.AddCors(options =>
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowVentifive", builder =>
                 {
-                    options.AddPolicy("AllowVentifive", builder =>
-                    {
-                        builder.WithOrigins(
-                                "https://ventifive.netlify.app",
-                                "http://localhost:4200"
-                            
-                                "https://ventifive.netlify.app",
-                                "http://localhost:4200"
-                            )
-                            .AllowAnyMethod()
-                            .AllowAnyHeader()
-                            .AllowCredentials();
-                    });
+                    builder.WithOrigins(
+                            "https://ventifive.netlify.app",
+                            "http://localhost:4200"
+                        )
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
+            });
             services.AddCookiePolicy(options =>
             {
                 options.MinimumSameSitePolicy = Microsoft.AspNetCore.Http.SameSiteMode.None;
