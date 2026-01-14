@@ -24,12 +24,17 @@ namespace VentifyAPI
         public void ConfigureServices(IServiceCollection services)
         {
             // ============================================================
-            // 1. TENANT CONTEXT
+            // 1. HTTP CONTEXT ACCESSOR (CRÍTICO para TenantContext)
+            // ============================================================
+            services.AddHttpContextAccessor();
+
+            // ============================================================
+            // 2. TENANT CONTEXT
             // ============================================================
             services.AddScoped<VentifyAPI.Services.ITenantContext, VentifyAPI.Services.TenantContext>();
 
             // ============================================================
-            // 2. DATABASE (RAILWAY SAFE)
+            // 3. DATABASE (RAILWAY SAFE)
             // ============================================================
             var connectionString =
                 Configuration.GetConnectionString("DefaultConnection")
@@ -51,7 +56,7 @@ namespace VentifyAPI
             );
 
             // ============================================================
-            // 3. JWT
+            // 4. JWT
             // ============================================================
             var jwtSecret =
                 Configuration["Jwt:Key"]
@@ -90,7 +95,7 @@ namespace VentifyAPI
                 });
 
             // ============================================================
-            // 4. COOKIE POLICY (Railway HTTPS + Cross-site)
+            // 5. COOKIE POLICY (Railway HTTPS + Cross-site)
             // ============================================================
             services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -102,7 +107,7 @@ namespace VentifyAPI
             });
 
             // ============================================================
-            // 5. CORS (CRITICAL: AllowCredentials + WithOrigins, no AllowAnyOrigin)
+            // 6. CORS (CRITICAL: AllowCredentials + WithOrigins, no AllowAnyOrigin)
             // FORCE RAILWAY REDEPLOY: 2025-01-13
             // ============================================================
             services.AddCors(options =>
@@ -110,10 +115,18 @@ namespace VentifyAPI
                 options.AddPolicy("AllowVentifive", builder =>
                 {
                     builder
-                        .WithOrigins("https://ventifive.netlify.app", "http://localhost:4200")
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials();
+                        .WithOrigins(
+                            "https://ventifive.netlify.app",
+                            "http://localhost:4200"
+                        )
+                        // Métodos explícitos
+                        .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
+                        // Headers explícitos
+                        .WithHeaders("Content-Type", "Authorization", "Accept", "X-Requested-With", "X-Debug-Negocio")
+                        // CRÍTICO: Permite cookies y credenciales
+                        .AllowCredentials()
+                        // Caché preflight
+                        .SetPreflightMaxAge(TimeSpan.FromSeconds(3600));
                 });
             });
             services.AddCookiePolicy(options =>
@@ -122,7 +135,7 @@ namespace VentifyAPI
             });
 
             // ============================================================
-            // 6. SERVICES
+            // 7. SERVICES
             // ============================================================
             services.AddScoped<VentifyAPI.Services.ITokenService, VentifyAPI.Services.TokenService>();
             services.AddScoped<VentifyAPI.Services.PdfService>();
@@ -140,10 +153,24 @@ namespace VentifyAPI
 
             app.UseRouting();
 
-            // CORS - PRIMERO Y LIMPIO
+            // ============================================================
+            // MIDDLEWARE PIPELINE ORDER (CRÍTICO)
+            // ============================================================
+            // 1. Custom logging middleware para debug CORS (solo desarrollo)
+            if (env.IsDevelopment())
+            {
+                app.UseMiddleware<VentifyAPI.Middleware.CorsDebugMiddleware>();
+            }
+
+            // 2. TenantMiddleware - Extrae y popula NegocioId desde JWT
+            app.UseMiddleware<VentifyAPI.Middleware.TenantMiddleware>();
+
+            // 3. CORS - DEBE ir ANTES de Authentication
             app.UseCors("AllowVentifive");
 
             app.UseCookiePolicy();
+
+            // 4. Authentication y Authorization
             app.UseAuthentication();
             app.UseAuthorization();
 
