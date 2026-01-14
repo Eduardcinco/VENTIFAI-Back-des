@@ -134,38 +134,11 @@ namespace VentifyAPI
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
 
-            // Debug middleware para loguear cookies (SOLO en Development)
-            if (env.IsDevelopment())
-                app.UseMiddleware<VentifyAPI.Middleware.CookieDebugMiddleware>();
-            // Loguear origen de cada petición para depurar CORS
-            app.UseMiddleware<VentifyAPI.Middleware.CorsDebugMiddleware>();
-
             app.UseRouting();
-            
-            // Middleware de OPTIONS (preflight CORS)
-            app.Use(async (context, next) =>
-            {
-                if (context.Request.Method == "OPTIONS")
-                {
-                    context.Response.Headers["Access-Control-Allow-Origin"] = "https://ventifive.netlify.app";
-                    context.Response.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS";
-                    context.Response.Headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization";
-                    context.Response.Headers["Access-Control-Allow-Credentials"] = "true";
-                    context.Response.StatusCode = 204;
-                    await context.Response.CompleteAsync();
-                    return;
-                }
-                await next();
-            });
-            
-            // Debug: loguear origen de cada petición
-            app.Use(async (context, next) =>
-            {
-                Console.WriteLine($"[CORS DEBUG] Origen recibido: {context.Request.Headers["Origin"]} | Método: {context.Request.Method}");
-                await next();
-            });
-            
-            app.UseCors("AllowVentifive"); // CORS debe ir antes de auth
+
+            // CORS - PRIMERO Y LIMPIO
+            app.UseCors("AllowVentifive");
+
             app.UseCookiePolicy();
             app.UseAuthentication();
             app.UseAuthorization();
