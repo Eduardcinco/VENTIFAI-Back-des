@@ -106,7 +106,13 @@ namespace VentifyAPI
                 {
                     options.AddPolicy("AllowVentifive", builder =>
                     {
-                        builder.WithOrigins("https://ventifive.netlify.app")
+                        builder.WithOrigins(
+                                "https://ventifive.netlify.app",
+                                "http://localhost:4200"
+                            
+                                "https://ventifive.netlify.app",
+                                "http://localhost:4200"
+                            )
                             .AllowAnyMethod()
                             .AllowAnyHeader()
                             .AllowCredentials();
