@@ -101,15 +101,14 @@ namespace VentifyAPI
 
             // ============================================================
             // 5. CORS (CRITICAL: AllowCredentials + WithOrigins, no AllowAnyOrigin)
+            // FORCE RAILWAY REDEPLOY: 2025-01-13
             // ============================================================
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowVentifive", builder =>
                 {
-                    builder.WithOrigins(
-                            "https://ventifive.netlify.app",
-                            "http://localhost:4200"
-                        )
+                    builder
+                        .WithOrigins("https://ventifive.netlify.app", "http://localhost:4200")
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();
