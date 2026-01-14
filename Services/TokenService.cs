@@ -23,11 +23,23 @@ namespace VentifyAPI.Services
 
         public (string accessToken, string refreshToken, DateTime refreshExpiresAt) CreateTokens(Usuario user)
         {
-            var secret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? _config["JWT_SECRET"];
-            if (string.IsNullOrEmpty(secret)) secret = "fallback_secret_please_configure";
+            // Intentar obtener del environment primero, luego del config
+            var secret = Environment.GetEnvironmentVariable("JWT_SECRET") 
+                ?? _config["JWT_SECRET"]
+                ?? _config["Jwt:Key"]
+                ?? "fallback_secret_please_configure";
 
-            var expiresMinutes = int.TryParse(Environment.GetEnvironmentVariable("JWT_EXPIRES_MINUTES") ?? _config["JWT_EXPIRES_MINUTES"], out var m) ? m : 15;
-            var refreshDays = int.TryParse(Environment.GetEnvironmentVariable("REFRESH_EXPIRES_DAYS") ?? _config["REFRESH_EXPIRES_DAYS"], out var d) ? d : 30;
+            var expiresMinutes = int.TryParse(
+                Environment.GetEnvironmentVariable("JWT_EXPIRES_MINUTES") 
+                ?? _config["JWT_EXPIRES_MINUTES"]
+                ?? _config["Jwt:ExpiresInMinutes"], 
+                out var m) ? m : 15;
+
+            var refreshDays = int.TryParse(
+                Environment.GetEnvironmentVariable("REFRESH_EXPIRES_DAYS") 
+                ?? _config["REFRESH_EXPIRES_DAYS"]
+                ?? _config["Jwt:RefreshExpirationDays"], 
+                out var d) ? d : 30;
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -55,8 +67,12 @@ namespace VentifyAPI.Services
             }
 
             var token = new JwtSecurityToken(
-                issuer: Environment.GetEnvironmentVariable("JWT_ISSUER") ?? _config["JWT_ISSUER"],
-                audience: Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? _config["JWT_AUDIENCE"],
+                issuer: Environment.GetEnvironmentVariable("JWT_ISSUER") 
+                    ?? _config["JWT_ISSUER"]
+                    ?? _config["Jwt:Issuer"],
+                audience: Environment.GetEnvironmentVariable("JWT_AUDIENCE") 
+                    ?? _config["JWT_AUDIENCE"]
+                    ?? _config["Jwt:Audience"],
                 claims: claimList,
                 expires: DateTime.UtcNow.AddMinutes(expiresMinutes),
                 signingCredentials: creds

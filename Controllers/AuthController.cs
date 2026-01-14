@@ -137,16 +137,18 @@ namespace VentifyAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] DTOs.LoginDTO loginInfo)
         {
-            if (loginInfo == null || string.IsNullOrWhiteSpace(loginInfo.CorreoNormalizado) || string.IsNullOrWhiteSpace(loginInfo.Password))
+            try
             {
-                return BadRequest(new { message = "Correo/Email y Password son requeridos." });
-            }
-            // Buscar usuario - IGNORAR filtro de tenant porque aÃºn no estÃ¡ autenticado
-            var usuario = await _context.Usuarios
-                .IgnoreQueryFilters()
-                .FirstOrDefaultAsync(u => u.Correo == loginInfo.CorreoNormalizado);
+                if (loginInfo == null || string.IsNullOrWhiteSpace(loginInfo.CorreoNormalizado) || string.IsNullOrWhiteSpace(loginInfo.Password))
+                {
+                    return BadRequest(new { message = "Correo/Email y Password son requeridos." });
+                }
+                // Buscar usuario - IGNORAR filtro de tenant porque aÃºn no estÃ¡ autenticado
+                var usuario = await _context.Usuarios
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(u => u.Correo == loginInfo.CorreoNormalizado);
 
-            if (usuario == null)
+                if (usuario == null)
             {
                 return Unauthorized(new { message = "Correo o contraseÃ±a incorrectos." });
             }
@@ -230,6 +232,17 @@ namespace VentifyAPI.Controllers
                     }
                 }
             });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error durante Login: {ErrorMessage}", ex.Message);
+                return StatusCode(500, new 
+                { 
+                    message = "Error interno del servidor durante el login.",
+                    error = ex.Message,
+                    innerError = ex.InnerException?.Message
+                });
+            }
         }
 
         // ================================
