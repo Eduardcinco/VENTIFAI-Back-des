@@ -1,0 +1,32 @@
+# Build folders
+bin/
+obj/
+
+# Visual Studio
+.vs/
+.vscode/
+*.user
+*.userprefs
+
+# NuGet
+*.nupkg
+*.nuget.props
+*.nuget.targets
+
+# Node modules (if any frontend is in here)
+node_modules/
+npm-debug.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
