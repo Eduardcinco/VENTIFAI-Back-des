@@ -40,6 +40,8 @@ namespace VentifyAPI
                 Configuration.GetConnectionString("DefaultConnection")
                 ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
+            System.Console.WriteLine($"[STARTUP] ConnectionString: {(string.IsNullOrWhiteSpace(connectionString) ? "❌ NULL/EMPTY" : "✅ Present")}");
+
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new Exception("❌ MySQL connection string NOT configured.");
 
@@ -63,6 +65,8 @@ namespace VentifyAPI
                 ?? Configuration["Jwt:Secret"]
                 ?? Environment.GetEnvironmentVariable("Jwt__Key")
                 ?? Environment.GetEnvironmentVariable("Jwt__Secret");
+
+            System.Console.WriteLine($"[STARTUP] JWT Secret: {(string.IsNullOrWhiteSpace(jwtSecret) ? "❌ NULL/EMPTY" : "✅ Present (length=" + jwtSecret?.Length + ")")}");
 
             if (string.IsNullOrWhiteSpace(jwtSecret))
                 throw new Exception("❌ JWT secret/key NOT configured in appsettings or environment variables.");
