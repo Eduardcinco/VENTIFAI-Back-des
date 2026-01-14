@@ -155,22 +155,23 @@ namespace VentifyAPI
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
 
+            // ============================================================
+            // MIDDLEWARE PIPELINE ORDER (CRÍTICO - CORS PRIMERO)
+            // ============================================================
+            
+            // 1. CORS - DEBE ser lo primero antes de routing y auth
+            app.UseCors("AllowVentifive");
+
             app.UseRouting();
 
-            // ============================================================
-            // MIDDLEWARE PIPELINE ORDER (CRÍTICO)
-            // ============================================================
-            // 1. Custom logging middleware para debug CORS (solo desarrollo)
+            // 2. Custom logging middleware para debug CORS (solo desarrollo)
             if (env.IsDevelopment())
             {
                 app.UseMiddleware<VentifyAPI.Middleware.CorsDebugMiddleware>();
             }
 
-            // 2. TenantMiddleware - Extrae y popula NegocioId desde JWT
+            // 3. TenantMiddleware - Extrae y popula NegocioId desde JWT
             app.UseMiddleware<VentifyAPI.Middleware.TenantMiddleware>();
-
-            // 3. CORS - DEBE ir ANTES de Authentication
-            app.UseCors("AllowVentifive");
 
             app.UseCookiePolicy();
 
